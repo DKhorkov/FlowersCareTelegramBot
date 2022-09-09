@@ -1,5 +1,5 @@
-import sqlite3
 import telebot
+from datetime import timedelta, datetime
 
 import settings
 from db_commands import DataBase
@@ -13,7 +13,8 @@ db.create_database()
 @bot.message_handler(commands=['help'])
 def help_instruction(message):
     instruction = """Чтобы начать пользоваться ботом, введите команду /start.
-    \nДля того, чтобы начать отслеживать время полива растения, нажмите на кнопку "🌷 Добавить растение"."""
+    \nДля того, чтобы начать отслеживать время полива растения, нажмите на кнопку "🌷 Добавить растение".
+    \nЧтобы посмотреть статус полива растений, введите команду /watering_status."""
     bot.send_message(message.chat.id, instruction)
 
 
@@ -38,6 +39,26 @@ def start(message):
                      f'{message.from_user.first_name}, добро пожаловать в {bot.get_me().username}! '
                      f'Здесь вы можете добавить свое растение, чтобы бот отправлял вам уведомление,'
                      f' когда его необходимо полить!', parse_mode='html', reply_markup=markup)
+
+
+@bot.message_handler(commands=['watering_status'])
+def watering_status(message):
+    users_flowers = db.selecting_flowers_from_database(message.chat.id)
+    answer = 'Статус полива ваших цветов:'
+    mark = 1
+    for flower in users_flowers:
+        watering_time = datetime.strptime(flower[4], "%Y-%m-%d %H:%M:%S.%f") + timedelta(hours=flower[3])
+        current_time = datetime.now()
+        if watering_time <= current_time:
+            msg = f'\n{mark}) Необходимо было полить цветок {flower[1]} типа {flower[2]} {watering_time}.'
+            mark += 1
+            answer += msg
+        else:
+            msg = f'\n{mark}) Необходимо будет полить цветок {flower[1]} типа {flower[2]} ' \
+                  f'в следующий раз {watering_time}.'
+            mark += 1
+            answer += msg
+    bot.send_message(message.chat.id, answer)
 
 
 @bot.message_handler(content_types=['text'])
@@ -92,8 +113,10 @@ def get_flower_watering_interval(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     if call.data == "yes":
+        current_time = datetime.now()
         db.add_flower_info_to_database(call.message.chat.id, users_dict[call.message.chat.id][0],
-                                       users_dict[call.message.chat.id][1], users_dict[call.message.chat.id][2])
+                                       users_dict[call.message.chat.id][1], users_dict[call.message.chat.id][2],
+                                       current_time)
 
         # Remove inline buttons and send notification:
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
