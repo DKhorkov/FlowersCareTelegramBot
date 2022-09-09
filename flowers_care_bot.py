@@ -40,11 +40,6 @@ def start(message):
                      f' когда его необходимо полить!', parse_mode='html', reply_markup=markup)
 
 
-flower_name = ''
-flower_type = ''
-flower_watering_interval = ''
-
-
 @bot.message_handler(content_types=['text'])
 def user_message(message):
     if message.chat.type == 'private':
@@ -57,35 +52,39 @@ def user_message(message):
                                               '\nДля получения информации о возможностях бота введите команду "/help".')
 
 
+users_dict = {}
+
+
 def get_flower_name(message):
-    global flower_name
-    flower_name = message.text
+    users_dict[message.chat.id] = [message.text]
     bot.send_message(message.chat.id,  "Пожалуйста, введите тип растения:")
     bot.register_next_step_handler(message, get_flower_type)
 
 
 def get_flower_type(message):
-    global flower_type
-    flower_type = message.text
+    flower_info_list = users_dict[message.chat.id]
+    flower_info_list.append(message.text)
+    users_dict[message.chat.id] = flower_info_list
     bot.send_message(message.chat.id, "Пожалуйста, введите интервал полива растения в часах:")
     bot.register_next_step_handler(message, get_flower_watering_interval)
 
 
 def get_flower_watering_interval(message):
-    global flower_watering_interval
     try:
         int(message.text)
     except ValueError:
         bot.send_message(message.chat.id, 'Вы ввели информацию некорректно, пожалуйста, введите цифрами целое число:')
         bot.register_next_step_handler(message, get_flower_watering_interval)
     else:
-        flower_watering_interval = message.text
+        flower_info_list = users_dict[message.chat.id]
+        flower_info_list.append(message.text)
+        users_dict[message.chat.id] = flower_info_list
         keyboard = telebot.types.InlineKeyboardMarkup()
         key_yes = telebot.types.InlineKeyboardButton(text='Да', callback_data='yes')
         key_no = telebot.types.InlineKeyboardButton(text='Нет', callback_data='no')
         keyboard.add(key_no, key_yes)
-        question = f'Проверим инфу: цветок {flower_name} типа {flower_type},' \
-                   f'который необходимо поливать каждые {flower_watering_interval} часов?'
+        question = f'Проверим инфу: цветок {users_dict[message.chat.id][0]} типа {users_dict[message.chat.id][1]},' \
+                   f'который необходимо поливать каждые {users_dict[message.chat.id][2]} часов?'
         bot.send_message(message.chat.id, question, reply_markup=keyboard)
 
 
@@ -93,7 +92,8 @@ def get_flower_watering_interval(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     if call.data == "yes":
-        db.add_flower_info_to_database(call.message.chat.id, flower_name, flower_type, flower_watering_interval)
+        db.add_flower_info_to_database(call.message.chat.id, users_dict[call.message.chat.id][0],
+                                       users_dict[call.message.chat.id][1], users_dict[call.message.chat.id][2])
 
         # Remove inline buttons and send notification:
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
