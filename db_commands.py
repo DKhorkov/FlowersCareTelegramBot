@@ -44,3 +44,18 @@ class DataBase:
         """
         self.cursor.execute(sql, info_list)
         self.connection.commit()
+
+    def delete_flower_from_database(self, user_id, flower_name, flower_type):
+        info_list = [user_id, flower_name, flower_type]
+        sql = f"""
+            DELETE FROM flowers 
+            WHERE user_id = ? AND flower_name = ? AND flower_type = ?
+            """
+        self.cursor.execute(sql, info_list)
+        self.connection.commit()
+
+    def select_flower_from_database(self, user_id, flower_name, flower_type):
+        info_list = [user_id, flower_name, flower_type]
+        result = self.cursor.execute("SELECT * FROM flowers WHERE user_id = ? AND flower_name = ? AND flower_type = ?",
+                                     info_list)
+        return result.fetchone()

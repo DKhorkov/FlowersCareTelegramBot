@@ -14,6 +14,8 @@ db.create_database()
 def help_instruction(message):
     instruction = """Чтобы начать пользоваться ботом, введите команду /start.
     \nДля того, чтобы начать отслеживать время полива растения, нажмите на кнопку "🌷 Добавить растение".
+    \nДля того, чтобы перестать отслеживать время полива растения, нажмите на кнопку "❌ Удалить растение".
+    \nЧтобы посмотреть список ваших растений, введите команду /flowers_list.
     \nЧтобы посмотреть статус полива растений, введите команду /watering_status."""
     bot.send_message(message.chat.id, instruction)
 
@@ -26,7 +28,9 @@ def start(message):
     # keyboard
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1 = telebot.types.KeyboardButton("🌷 Добавить растение")
+    item2 = telebot.types.KeyboardButton("❌ Удалить растение")
     markup.add(item1)
+    markup.add(item2)
 
     # Adding user to a database if he is not already in it:
     data = db.check_if_user_is_already_in_database(message.chat.id)
@@ -44,21 +48,40 @@ def start(message):
 @bot.message_handler(commands=['watering_status'])
 def watering_status(message):
     users_flowers = db.selecting_flowers_from_database(message.chat.id)
-    answer = 'Статус полива ваших цветов:'
-    mark = 1
-    for flower in users_flowers:
-        watering_time = datetime.strptime(flower[4], "%Y-%m-%d %H:%M:%S.%f") + timedelta(hours=flower[3])
-        current_time = datetime.now()
-        if watering_time <= current_time:
-            msg = f'\n{mark}) Необходимо было полить цветок {flower[1]} типа {flower[2]} {watering_time}.'
+    if users_flowers:
+        answer = 'Статус полива ваших цветов:'
+        mark = 1
+        for flower in users_flowers:
+            watering_time = datetime.strptime(flower[4], "%Y-%m-%d %H:%M:%S.%f") + timedelta(hours=flower[3])
+            current_time = datetime.now()
+            if watering_time <= current_time:
+                msg = f'\n{mark}) Необходимо было полить цветок {flower[1]} типа {flower[2]} {watering_time}.'
+                mark += 1
+                answer += msg
+            else:
+                msg = f'\n{mark}) Необходимо будет полить цветок {flower[1]} типа {flower[2]} ' \
+                      f'в следующий раз {watering_time}.'
+                mark += 1
+                answer += msg
+        bot.send_message(message.chat.id, answer)
+    else:
+        bot.send_message(message.chat.id, "Вы пока что не добавили растений для отслеживания статуса полива!")
+
+
+@bot.message_handler(commands=['flowers_list'])
+def flowers_list(message):
+    users_flowers = db.selecting_flowers_from_database(message.chat.id)
+    if users_flowers:
+        answer = 'Список ваших цветов:'
+        mark = 1
+        for flower in users_flowers:
+            msg = f'\n{mark}) Цветок {flower[1]} типа {flower[2]} с интервалом полива {flower[3]} часов. ' \
+                  f'Полит в последний раз {flower[4]}.'
             mark += 1
             answer += msg
-        else:
-            msg = f'\n{mark}) Необходимо будет полить цветок {flower[1]} типа {flower[2]} ' \
-                  f'в следующий раз {watering_time}.'
-            mark += 1
-            answer += msg
-    bot.send_message(message.chat.id, answer)
+        bot.send_message(message.chat.id, answer)
+    else:
+        bot.send_message(message.chat.id, "Вы еще не добавили ни одного цветка!")
 
 
 @bot.message_handler(content_types=['text'])
@@ -67,7 +90,9 @@ def user_message(message):
         if message.text == "🌷 Добавить растение":
             bot.send_message(message.chat.id, "Пожалуйста, введите название растения:")
             bot.register_next_step_handler(message, get_flower_name)
-
+        elif message.text == "❌ Удалить растение":
+            bot.send_message(message.chat.id, "Пожалуйста, введите название растения:")
+            bot.register_next_step_handler(message, get_flower_name_to_delete)
         else:
             bot.send_message(message.chat.id, 'Я не знаю что ответить 😢'
                                               '\nДля получения информации о возможностях бота введите команду "/help".')
@@ -76,9 +101,28 @@ def user_message(message):
 users_dict = {}
 
 
+def get_flower_name_to_delete(message):
+    users_dict[message.chat.id] = [message.text]
+    bot.send_message(message.chat.id, "Пожалуйста, введите тип растения:")
+    bot.register_next_step_handler(message, get_flower_type_to_delete)
+
+
+def get_flower_type_to_delete(message):
+    flower_info_list = users_dict[message.chat.id]
+    flower_info_list.append(message.text)
+    users_dict[message.chat.id] = flower_info_list
+    keyboard = telebot.types.InlineKeyboardMarkup()
+    key_yes = telebot.types.InlineKeyboardButton(text='Да', callback_data='yes_delete')
+    key_no = telebot.types.InlineKeyboardButton(text='Нет', callback_data='no_delete')
+    keyboard.add(key_no, key_yes)
+    question = f'Проверим инфу для удаления: цветок {users_dict[message.chat.id][0]} ' \
+               f'типа {users_dict[message.chat.id][1]}?'
+    bot.send_message(message.chat.id, question, reply_markup=keyboard)
+
+
 def get_flower_name(message):
     users_dict[message.chat.id] = [message.text]
-    bot.send_message(message.chat.id,  "Пожалуйста, введите тип растения:")
+    bot.send_message(message.chat.id, "Пожалуйста, введите тип растения:")
     bot.register_next_step_handler(message, get_flower_type)
 
 
@@ -120,10 +164,24 @@ def callback_worker(call):
 
         # Remove inline buttons and send notification:
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text="Растение сохранено. Ждите уведомления о необходимости полива!)", reply_markup=None)
+                              text="Растение сохранено!)", reply_markup=None)
     elif call.data == "no":
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                               text="Начните с начала!)", reply_markup=None)
+    elif call.data == "yes_delete":
+        flower = db.select_flower_from_database(call.message.chat.id, users_dict[call.message.chat.id][0],
+                                                users_dict[call.message.chat.id][1])
+        if flower:
+            db.delete_flower_from_database(call.message.chat.id, users_dict[call.message.chat.id][0],
+                                           users_dict[call.message.chat.id][1])
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                  text="Растение успешно удалено!)", reply_markup=None)
+        else:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                  text="Такого цветка нет. Попробуйте снова!", reply_markup=None)
+    elif call.data == "no_delete":
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text="Ничего не удалено. Начните с начала!)", reply_markup=None)
 
 
 bot.polling(none_stop=True)
