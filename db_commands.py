@@ -35,9 +35,9 @@ class DataBase:
         result = self.cursor.execute("SELECT * FROM flowers WHERE user_id = ?", user_id)
         return result.fetchall()
 
-    def update_flower_last_time_watering(self, user_id, flower_name, flower_type, current_time):
-        info_list = [current_time, user_id, flower_name, flower_type]
-        sql = f"""
+    def update_flower_last_time_watering(self, user_id, flower_name, flower_type, last_watered_time):
+        info_list = [last_watered_time, user_id, flower_name, flower_type]
+        sql = """
         UPDATE flowers 
         SET flower_watering_last_time = ?
         WHERE user_id = ? AND flower_name = ? AND flower_type = ?
@@ -47,7 +47,7 @@ class DataBase:
 
     def delete_flower_from_database(self, user_id, flower_name, flower_type):
         info_list = [user_id, flower_name, flower_type]
-        sql = f"""
+        sql = """
             DELETE FROM flowers 
             WHERE user_id = ? AND flower_name = ? AND flower_type = ?
             """

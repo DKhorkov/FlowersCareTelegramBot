@@ -29,8 +29,10 @@ def start(message):
     markup = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
     item1 = telebot.types.KeyboardButton("🌷 Добавить растение")
     item2 = telebot.types.KeyboardButton("❌ Удалить растение")
+    item3 = telebot.types.KeyboardButton("🔄 Обновить растение")
     markup.add(item1)
     markup.add(item2)
+    markup.add(item3)
 
     # Adding user to a database if he is not already in it:
     data = db.check_if_user_is_already_in_database(message.chat.id)
@@ -93,12 +95,82 @@ def user_message(message):
         elif message.text == "❌ Удалить растение":
             bot.send_message(message.chat.id, "Пожалуйста, введите название растения:")
             bot.register_next_step_handler(message, get_flower_name_to_delete)
+        elif message.text == "🔄 Обновить растение":
+            bot.send_message(message.chat.id, "Пожалуйста, введите название растения:")
+            bot.register_next_step_handler(message, get_flower_name_to_update)
         else:
             bot.send_message(message.chat.id, 'Я не знаю что ответить 😢'
                                               '\nДля получения информации о возможностях бота введите команду "/help".')
 
 
 users_dict = {}
+
+
+def get_flower_name_to_update(message):
+    users_dict[message.chat.id] = [message.text]
+    bot.send_message(message.chat.id, "Пожалуйста, введите тип растения:")
+    bot.register_next_step_handler(message, get_flower_type_to_update)
+
+
+def get_flower_type_to_update(message):
+    flower_info_list = users_dict[message.chat.id]
+    flower_info_list.append(message.text)
+    users_dict[message.chat.id] = flower_info_list
+    flower = db.select_flower_from_database(message.chat.id, users_dict[message.chat.id][0],
+                                            users_dict[message.chat.id][1])
+    if flower:
+        watering_time = datetime.strptime(flower[4], "%Y-%m-%d %H:%M:%S.%f") + timedelta(hours=flower[3])
+        current_time = datetime.now()
+        if watering_time <= current_time:
+            bot.send_message(message.chat.id, "Цветок был полит (да/нет)?")
+            bot.register_next_step_handler(message, check_if_flower_was_watered)
+        else:
+            bot.send_message(message.chat.id, f"Время полива цветка еще не наступило. Цветок нужно будет "
+                                              f"полить {watering_time}.")
+    else:
+        bot.send_message(message.chat.id, 'У вас нет цветка с заданным называнием и типом, но вы можете его добавить '
+                                          'с помощью кнопки "🌷 Добавить растение"')
+
+
+def check_if_flower_was_watered(message):
+    if message.text.lower() == 'да':
+        bot.send_message(message.chat.id, "Цветок был полит во время (да/нет)?")
+        bot.register_next_step_handler(message, check_if_flower_was_watered_at_correct_time)
+    elif message.text.lower() == 'нет':
+        bot.send_message(message.chat.id, "Пожалуйста, полейте цветок!")
+    else:
+        bot.send_message(message.chat.id, 'Вы ввели информацию некорректно, пожалуйста, напишите "да" или "нет":')
+        bot.register_next_step_handler(message, check_if_flower_was_watered)
+
+
+def check_if_flower_was_watered_at_correct_time(message):
+    if message.text.lower() == 'да':
+        flower = db.select_flower_from_database(message.chat.id, users_dict[message.chat.id][0],
+                                                users_dict[message.chat.id][1])
+        watering_time = datetime.strptime(flower[4], "%Y-%m-%d %H:%M:%S.%f") + timedelta(hours=flower[3])
+        db.update_flower_last_time_watering(message.chat.id, flower[1], flower[2], watering_time)
+        bot.send_message(message.chat.id, "Информация о последнем времени полива успешно обновлена!")
+    elif message.text.lower() == 'нет':
+        bot.send_message(message.chat.id, "Сколько часов назад был полит цветок?")
+        bot.register_next_step_handler(message, get_hours_for_last_time_watering)
+    else:
+        bot.send_message(message.chat.id, 'Вы ввели информацию некорректно, пожалуйста, напишите "да" или "нет":')
+        bot.register_next_step_handler(message, check_if_flower_was_watered_at_correct_time)
+
+
+def get_hours_for_last_time_watering(message):
+    try:
+        int(message.text)
+    except ValueError:
+        bot.send_message(message.chat.id, 'Вы ввели информацию некорректно, пожалуйста, введите цифрами целое число:')
+        bot.register_next_step_handler(message, get_hours_for_last_time_watering)
+    else:
+        flower = db.select_flower_from_database(message.chat.id, users_dict[message.chat.id][0],
+                                                users_dict[message.chat.id][1])
+        current_time = datetime.now()
+        last_time_watered = current_time - timedelta(hours=int(message.text))
+        db.update_flower_last_time_watering(message.chat.id, flower[1], flower[2], last_time_watered)
+        bot.send_message(message.chat.id, "Информация о последнем времени полива успешно обновлена!")
 
 
 def get_flower_name_to_delete(message):
@@ -153,7 +225,7 @@ def get_flower_watering_interval(message):
         bot.send_message(message.chat.id, question, reply_markup=keyboard)
 
 
-# Обработчик ответа на клавиатуре пользователя на вопрос, правильно ли введена инфа про цветок:
+# Обработчик ответа на клавиатуре пользователя:
 @bot.callback_query_handler(func=lambda call: True)
 def callback_worker(call):
     if call.data == "yes":
