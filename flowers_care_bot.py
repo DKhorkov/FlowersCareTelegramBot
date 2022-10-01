@@ -1,8 +1,10 @@
+import multiprocessing
 import telebot
 from datetime import timedelta, datetime
 
 import settings
 from db_commands import DataBase
+from send_message_for_watering import send_messages
 
 bot = telebot.TeleBot(settings.TOKEN)
 URL = "https://api.telegram.org/bot{}/".format(settings.TOKEN)
@@ -256,5 +258,8 @@ def callback_worker(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                               text="Ничего не удалено. Начните с начала!)", reply_markup=None)
 
+
+push_messages = multiprocessing.Process(target=send_messages, args=(db, bot))
+push_messages.start()
 
 bot.polling(none_stop=True)

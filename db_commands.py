@@ -59,3 +59,8 @@ class DataBase:
         result = self.cursor.execute("SELECT * FROM flowers WHERE user_id = ? AND flower_name = ? AND flower_type = ?",
                                      info_list)
         return result.fetchone()
+
+    def select_all_flowers(self):
+        sql = '''SELECT * FROM flowers'''
+        result = self.cursor.execute(sql)
+        return result.fetchall()
