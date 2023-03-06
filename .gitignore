@@ -1,4 +1,9 @@
+v_1/./.idea/
+v_1/__pycache__/
+v_1/settings.py
+v_1/mydatabase.db
 .idea/
-/__pycache__/
-settings.py
-mydatabase.db
+v_2/JSON_data/
+v_2/__pycache__/
+v_2/log/
+v_2/helpers/__pycache__/
