@@ -7,3 +7,5 @@ v_2/JSON_data/
 v_2/__pycache__/
 v_2/log/
 v_2/helpers/__pycache__/
+v_2/configs.py
+
