@@ -14,9 +14,17 @@ class MarkupCreator:
         return base_markup
 
     @staticmethod
-    def create_group_adding_markup():
-        group_adding_markup = InlineKeyboardMarkup(row_width=1)
-        back_button = InlineKeyboardButton('Назад ↩️', callback_data=f'group_adding_name BACK')
-        group_adding_markup.add(back_button)
-        return group_adding_markup
+    def create_add_group_name_markup():
+        set_group_name_markup = InlineKeyboardMarkup(row_width=1)
+        back_button = InlineKeyboardButton('Назад ↩️', callback_data='group_adding_name BACK')
+        set_group_name_markup.add(back_button)
+        return set_group_name_markup
+
+    @staticmethod
+    def create_add_group_description_markup():
+        set_group_description_markup = InlineKeyboardMarkup(row_width=1)
+        back_button = InlineKeyboardButton('Назад ↩️', callback_data='group_adding_description BACK')
+        menu = InlineKeyboardButton('В меню 🏠', callback_data='group_adding_description MENU')
+        set_group_description_markup.add(back_button, menu)
+        return set_group_description_markup
 

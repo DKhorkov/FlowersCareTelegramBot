@@ -27,12 +27,10 @@ class JsonHandler:
         with open(f'JSON_data/{self.json}', 'w') as file:
             file.write(json.dumps(updated_json))
 
-    def clear_iterables(self, user_id):
+    def reset_appropriate_messages(self, str_user_id):
         json_data = self.read_json_file()
-        json_data[str(user_id)]['platforms'] = []
-        json_data[str(user_id)]['metrics'] = []
-        if self.json == 'compare_subscribes.json':
-            json_data[str(user_id)]['streams_to_check'] = []
-            json_data[str(user_id)]['thresholds'] = {}
-
-        self.write_json_data(json)
+        json_data[str_user_id]['set_group_name'] = False
+        json_data[str_user_id]['set_group_description'] = False
+        json_data[str_user_id]['set_flower_name'] = False
+        json_data[str_user_id]['set_flower_description'] = False
+        self.write_json_data(json_data)
