@@ -2,7 +2,7 @@ import datetime
 import calendar
 
 from telebot import TeleBot
-from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InputMediaPhoto
 from telebot_calendar import Calendar, CallbackData, Language, RUSSIAN_LANGUAGE, ENGLISH_LANGUAGE
 
 
@@ -135,8 +135,8 @@ class CustomizedCalendar(Calendar):
             return datetime.datetime(int(year), int(month), int(day))
         elif action == "PREVIOUS-MONTH":
             preview_month = current - datetime.timedelta(days=1)
-            bot.edit_message_text(
-                text=call.message.text,
+
+            bot.edit_message_media(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 reply_markup=self.create_calendar(
@@ -144,44 +144,78 @@ class CustomizedCalendar(Calendar):
                     year=int(preview_month.year),
                     month=int(preview_month.month),
                 ),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=call.message.caption,
+                    parse_mode='HTML'
+                )
             )
+
             return None
         elif action == "NEXT-MONTH":
             next_month = current + datetime.timedelta(days=31)
-            bot.edit_message_text(
-                text=call.message.text,
+
+            bot.edit_message_media(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 reply_markup=self.create_calendar(
-                    name=name, year=int(next_month.year), month=int(next_month.month)
+                    name=name,
+                    year=int(next_month.year),
+                    month=int(next_month.month)
                 ),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=call.message.caption,
+                    parse_mode='HTML'
+                )
             )
+
             return None
         elif action == "MONTHS":
-            bot.edit_message_text(
-                text=call.message.text,
+            bot.edit_message_media(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                reply_markup=self.create_months_calendar(name=name, year=current.year),
+                reply_markup=self.create_months_calendar(
+                    name=name,
+                    year=current.year
+                ),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=call.message.caption,
+                    parse_mode='HTML'
+                )
             )
+
             return None
         elif action == "MONTH":
-            bot.edit_message_text(
-                text=call.message.text,
+            bot.edit_message_media(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
                 reply_markup=self.create_calendar(
-                    name=name, year=int(year), month=int(month)
+                    name=name,
+                    year=int(year),
+                    month=int(month)
                 ),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=call.message.caption,
+                    parse_mode='HTML'
+                )
             )
+
             return None
         elif action == "MENU":
             return "MENU", None
         elif action == "BACK":
             return "BACK", None
         else:
-            bot.answer_callback_query(callback_query_id=call.id, text="ERROR!")
+            bot.answer_callback_query(
+                callback_query_id=call.id,
+                text="ERROR!"
+            )
+
             bot.delete_message(
                 chat_id=call.message.chat.id, message_id=call.message.message_id
             )
+
             return None

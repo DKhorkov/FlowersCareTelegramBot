@@ -1,6 +1,6 @@
 from telebot import TeleBot
 from telebot.types import InputMediaPhoto
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from telebot_calendar import CallbackData, RUSSIAN_LANGUAGE
 from telebot.types import CallbackQuery
@@ -28,12 +28,8 @@ def start(message):
     # TODO Добавить сохранения данных пользователя в таблицу БД, если юзер еще не подписан
     logger.info(f'User {message.from_user.id} have subscribed!')
 
-    sticker = open('static/stickers/AnimatedSticker.tgs', 'rb')
-    bot.send_sticker(message.chat.id, sticker)
-
     str_user_id = str(message.from_user.id)
     json_data = JsonHandler(json_name).read_json_file()
-
 
     message_to_update = bot.send_media_group(
         chat_id=message.from_user.id,
@@ -49,7 +45,7 @@ def start(message):
     bot.edit_message_reply_markup(
         chat_id=message.from_user.id,
         message_id=message_to_update,
-        reply_markup=MarkupCreator().create_base_markup()
+        reply_markup=MarkupCreator().base_markup()
     )
 
     json_data[str_user_id] = {}
@@ -70,7 +66,7 @@ def creating_group_call_query(call):
             bot.edit_message_media(
                 chat_id=call.from_user.id,
                 message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().create_add_group_name_markup(),
+                reply_markup=MarkupCreator().add_group_name_markup(),
                 media=InputMediaPhoto(
                     media=open('static/images/media_message_picture.png', 'rb'),
                     caption=TemplateCreator().add_group_name(),
@@ -96,7 +92,7 @@ def add_group_name_call_query(call):
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().create_base_markup(),
+                    reply_markup=MarkupCreator().base_markup(),
                     media=InputMediaPhoto(
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().base_template(),
@@ -123,7 +119,7 @@ def add_group_description_call_query(call):
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().create_add_group_name_markup(),
+                    reply_markup=MarkupCreator().add_group_name_markup(),
                     media=InputMediaPhoto(
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().add_group_name(),
@@ -132,14 +128,12 @@ def add_group_description_call_query(call):
                 )
 
             elif "MENU" in call.data:
-                json[str_user_id]['set_group_name'] = False
-                json[str_user_id]['set_group_description'] = False
-                JsonHandler(json_name).write_json_data(json)
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().create_base_markup(),
+                    reply_markup=MarkupCreator().base_markup(),
                     media=InputMediaPhoto(
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().base_template(),
@@ -151,10 +145,180 @@ def add_group_description_call_query(call):
         logger.info(e)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith(calendar_callback.prefix))
+def add_last_time_watering_call_query(call: CallbackQuery):
+    try:
+        if call.message:
+            json = JsonHandler(json_name).read_json_file()
+            str_user_id = str(call.from_user.id)
+
+            name, action, year, month, day = call.data.split(calendar_callback.sep)
+            last_time_watering_date = calendar.calendar_query_handler(
+                bot=bot,
+                call=call,
+                name=name,
+                action=action,
+                year=year,
+                month=month,
+                day=day
+            )
+
+            if action == "DAY":
+                json[str_user_id]['last_time_watering_date'] = str(last_time_watering_date)
+                JsonHandler(json_name).write_json_data(json)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().add_group_watering_interval_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_group_watering_interval(
+                            json=json,
+                            str_user_id=str_user_id
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif action == "MENU":
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif action == "BACK":
+                json[str_user_id]['set_group_description'] = True
+                JsonHandler(json_name).write_json_data(json)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().add_group_description_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_group_description(
+                            json=json,
+                            str_user_id=str_user_id
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.info(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_interval'))
+def add_watering_interval_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            if 'BACK' in call.data:
+                now = datetime.now()
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=calendar.create_calendar(
+                        name=calendar_callback.prefix,
+                        year=now.year,
+                        month=now.month
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_group_watering_last_time(
+                            json=json,
+                            str_user_id=str_user_id
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            else:
+                watering_interval = int(call.data.split(' ')[-1])
+                JsonHandler(json_name).process_watering_interval(
+                    json_data=json,
+                    str_user_id=str_user_id,
+                    watering_interval=watering_interval
+                )
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().back_to_menu_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().group_created(
+                            json=json,
+                            str_user_id=str_user_id
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.info(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('MENU'))
+def ticket_created_callback_inline(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            bot.edit_message_media(
+                chat_id=call.from_user.id,
+                message_id=json[str_user_id]['message_for_update'],
+                reply_markup=MarkupCreator().base_markup(),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=TemplateCreator().base_template(),
+                    parse_mode='HTML'
+                )
+            )
+
+    except Exception as e:
+        logger.info(e)
+
+
 @bot.message_handler(content_types= ['text'])
 def text_messages_handler(message):
     str_user_id = str(message.from_user.id)
     json = JsonHandler(json_name).read_json_file()
+
+    if json.get(str_user_id, None) is None:
+        bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=message.id
+        )
+
+        return
 
     if json[str_user_id]['set_group_name']:
         json[str_user_id]['set_group_name'] = False
@@ -170,10 +334,13 @@ def text_messages_handler(message):
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().create_add_group_description_markup(),
+            reply_markup=MarkupCreator().add_group_description_markup(),
             media=InputMediaPhoto(
                 media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_group_description(),
+                caption=TemplateCreator().add_group_description(
+                    json=json,
+                    str_user_id=str_user_id
+                ),
                 parse_mode='HTML'
             )
         )
@@ -199,7 +366,10 @@ def text_messages_handler(message):
             ),
             media=InputMediaPhoto(
                 media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_group_watering_last_time(),
+                caption=TemplateCreator().add_group_watering_last_time(
+                    json=json,
+                    str_user_id=str_user_id
+                ),
                 parse_mode='HTML'
             )
         )
