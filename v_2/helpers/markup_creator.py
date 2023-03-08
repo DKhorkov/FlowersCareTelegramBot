@@ -16,11 +16,11 @@ class MarkupCreator:
         return base_markup
 
     @staticmethod
-    def add_group_name_markup():
-        add_group_name_markup = InlineKeyboardMarkup(row_width=1)
-        back_button = InlineKeyboardButton('Назад ↩️', callback_data='group_adding_name BACK')
-        add_group_name_markup.add(back_button)
-        return add_group_name_markup
+    def add_group_title_markup():
+        add_group_title_markup = InlineKeyboardMarkup(row_width=1)
+        back_button = InlineKeyboardButton('Назад ↩️', callback_data='group_adding_title BACK')
+        add_group_title_markup.add(back_button)
+        return add_group_title_markup
 
     @staticmethod
     def add_group_description_markup():

@@ -8,4 +8,5 @@ v_2/__pycache__/
 v_2/log/
 v_2/helpers/__pycache__/
 v_2/configs.py
-
+v_2/sqlite_tg_bot_db.db
+v_2/sql_alchemy/__pycache__/

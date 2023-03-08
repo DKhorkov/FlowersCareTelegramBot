@@ -13,6 +13,7 @@ from helpers.customized_calendar import CustomizedCalendar
 from helpers.json_handler import JsonHandler
 from helpers.template_creator import TemplateCreator
 from helpers.markup_creator import MarkupCreator
+from sql_alchemy.adapter import SQLAlchemyAdapter
 
 
 logger = get_logger('bot_logs')
@@ -20,13 +21,22 @@ bot = TeleBot(token=TOKEN)
 json_name = 'users_data_json'
 calendar = CustomizedCalendar(language=RUSSIAN_LANGUAGE)
 calendar_callback = CallbackData("calendar", "action", "year", "month", "day")
+sql_alchemy = SQLAlchemyAdapter(logger=logger)
+sql_alchemy.create_tables()
 
 
 @bot.message_handler(commands=["start"])
 def start(message):
 
-    # TODO Добавить сохранения данных пользователя в таблицу БД, если юзер еще не подписан
-    logger.info(f'User {message.from_user.id} have subscribed!')
+    if sql_alchemy.check_if_user_already_registered(message.from_user.id):
+        sql_alchemy.add_user(
+            user_id=message.from_user.id,
+            username=message.from_user.username,
+            first_name=message.from_user.first_name,
+            last_name=message.from_user.last_name,
+            is_bot=message.from_user.is_bot
+        )
+        #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
 
     str_user_id = str(message.from_user.id)
     json_data = JsonHandler(json_name).read_json_file()
@@ -54,39 +64,44 @@ def start(message):
     JsonHandler(json_name).reset_appropriate_messages(str_user_id)
 
 
+"""
+    Ниже идет логика по созданию сценария (группы) полива цветов.
+"""
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add_group'))
 def creating_group_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
             json = JsonHandler(json_name).read_json_file()
-            json[str_user_id]['set_group_name'] = True
+            json[str_user_id]['set_group_title'] = True
             JsonHandler(json_name).write_json_data(json)
 
             bot.edit_message_media(
                 chat_id=call.from_user.id,
                 message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().add_group_name_markup(),
+                reply_markup=MarkupCreator().add_group_title_markup(),
                 media=InputMediaPhoto(
                     media=open('static/images/media_message_picture.png', 'rb'),
-                    caption=TemplateCreator().add_group_name(),
+                    caption=TemplateCreator().add_group_title(),
                     parse_mode='HTML'
                 )
             )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_name'))
-def add_group_name_call_query(call):
+@bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_title'))
+def add_group_title_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                json[str_user_id]['set_group_name'] = False
+                json[str_user_id]['set_group_title'] = False
                 JsonHandler(json_name).write_json_data(json)
 
                 bot.edit_message_media(
@@ -101,7 +116,7 @@ def add_group_name_call_query(call):
                 )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_description'))
@@ -112,17 +127,17 @@ def add_group_description_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                json[str_user_id]['set_group_name'] = True
+                json[str_user_id]['set_group_title'] = True
                 json[str_user_id]['set_group_description'] = False
                 JsonHandler(json_name).write_json_data(json)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_name_markup(),
+                    reply_markup=MarkupCreator().add_group_title_markup(),
                     media=InputMediaPhoto(
                         media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_name(),
+                        caption=TemplateCreator().add_group_title(),
                         parse_mode='HTML'
                     )
                 )
@@ -142,7 +157,7 @@ def add_group_description_call_query(call):
                 )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(calendar_callback.prefix))
@@ -214,7 +229,7 @@ def add_last_time_watering_call_query(call: CallbackQuery):
                 )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_interval'))
@@ -267,6 +282,11 @@ def add_watering_interval_call_query(call):
                     watering_interval=watering_interval
                 )
 
+                sql_alchemy.add_flower_group(
+                    str_user_id=str_user_id,
+                    json_data=JsonHandler(json_name).read_json_file()
+                )
+
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
@@ -282,11 +302,11 @@ def add_watering_interval_call_query(call):
                 )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('MENU'))
-def ticket_created_callback_inline(call):
+def created_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -304,7 +324,22 @@ def ticket_created_callback_inline(call):
             )
 
     except Exception as e:
-        logger.info(e)
+        logger.error(e)
+
+
+"""
+    Ниже идет логика по просмотру, редактированию и удалению сценариев (групп) полива.
+"""
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_groups'))
+def check_groups_call_query(call):
+    pass
+
+
+"""
+    Ниже идет логика по обработке сообщений от пользователей.
+"""
 
 
 @bot.message_handler(content_types= ['text'])
@@ -320,10 +355,10 @@ def text_messages_handler(message):
 
         return
 
-    if json[str_user_id]['set_group_name']:
-        json[str_user_id]['set_group_name'] = False
+    if json[str_user_id]['set_group_title']:
+        json[str_user_id]['set_group_title'] = False
         json[str_user_id]['set_group_description'] = True
-        json[str_user_id]['group_name'] = message.text
+        json[str_user_id]['group_title'] = message.text
         JsonHandler(json_name).write_json_data(json)
 
         bot.delete_message(

@@ -7,38 +7,38 @@ class TemplateCreator:
         return 'Пожалуйста, выберите действие:'
 
     @staticmethod
-    def add_group_name():
+    def add_group_title():
         return 'Пожалуйста, отправьте боту сообщение с названием сценария полива для ваших цветов:'
 
     @staticmethod
     def add_group_description(json, str_user_id):
-        template = f"Название сценария полива: {json[str_user_id]['group_name']}\n\n" \
+        template = f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n\n" \
                    f"Пожалуйста, отправьте боту сообщение с описанием сценария полива для ваших цветов:"
         return template
 
     @staticmethod
     def add_group_watering_last_time(json, str_user_id):
-        template = f"Название сценария полива: {json[str_user_id]['group_name']}\n" \
-                   f"Описание сценария полива: {json[str_user_id]['group_description']}\n\n" \
+        template = f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
+                   f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n\n" \
                    f"Пожалуйста, выберите дату последнего полива для создаваемого сценария:"
         return template
 
     @staticmethod
     def add_group_watering_interval(json, str_user_id):
-        template = f"Название сценария полива: {json[str_user_id]['group_name']}\n" \
-                   f"Описание сценария полива: {json[str_user_id]['group_description']}\n" \
-                   f"Дата последнего полива: {json[str_user_id]['last_time_watering_date'].split(' ')[0]}\n\n" \
+        template = f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
+                   f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
+                   f"<b>Дата последнего полива:</b> {json[str_user_id]['last_time_watering_date'].split(' ')[0]}\n\n" \
                    f"Пожалуйста, выберите интервал полива для создаваемого сценария:"
         return template
 
     def group_created(self, json, str_user_id):
         template = f"✅ <b>Сценарий полива успешно создан:</b> ✅\n\n" \
-                   f"Название сценария полива: {json[str_user_id]['group_name']}\n" \
-                   f"Описание сценария полива: {json[str_user_id]['group_description']}\n" \
-                   f"Дата последнего полива: " \
+                   f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
+                   f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
+                   f"<b>Дата последнего полива:</b> " \
                    f"{self.__transform_to_russian_date(json[str_user_id]['last_time_watering_date'])}\n" \
-                   f"Интервал полива: {json[str_user_id]['watering_interval']}\n" \
-                   f"Дата следующего полива: " \
+                   f"<b>Интервал полива:</b> {json[str_user_id]['watering_interval']}\n" \
+                   f"<b>Дата следующего полива:</b> " \
                    f"{self.__transform_to_russian_date(json[str_user_id]['next_watering_date'])}\n\n"
         return template
 

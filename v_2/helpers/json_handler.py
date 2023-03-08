@@ -31,7 +31,7 @@ class JsonHandler:
 
     def reset_appropriate_messages(self, str_user_id):
         json_data = self.read_json_file()
-        json_data[str_user_id]['set_group_name'] = False
+        json_data[str_user_id]['set_group_title'] = False
         json_data[str_user_id]['set_group_description'] = False
         json_data[str_user_id]['set_flower_name'] = False
         json_data[str_user_id]['set_flower_description'] = False
