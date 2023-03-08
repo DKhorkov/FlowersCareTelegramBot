@@ -1,5 +1,5 @@
 from sqlalchemy.sql.schema import Column, ForeignKey
-from sqlalchemy.sql.sqltypes import Integer, Text, Boolean
+from sqlalchemy.sql.sqltypes import Integer, Text, Boolean, BLOB
 from sqlalchemy.ext.declarative import declarative_base
 
 
@@ -26,3 +26,13 @@ class FlowersGroup(Base):
     last_time_watering_date = Column(Text(), nullable=False)
     watering_interval = Column(Text(), nullable=False)
     next_watering_date = Column(Text(), nullable=False)
+
+
+class Flower(Base):
+    __tablename__ = 'flower'
+    id = Column(Integer(), primary_key=True, autoincrement=True, nullable=False)
+    user_id = Column(Integer(), ForeignKey('user.id'), nullable=False)
+    group_id = Column(Integer(), ForeignKey('flowers_group.id'), nullable=False)
+    title = Column(Text(), nullable=False)
+    description = Column(Text(), nullable=False)
+    photo = Column(BLOB(), nullable=False)
