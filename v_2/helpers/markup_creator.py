@@ -8,9 +8,9 @@ class MarkupCreator:
     @staticmethod
     def base_markup():
         base_markup = InlineKeyboardMarkup(row_width=1)
-        add_group = InlineKeyboardButton('Создать группу', callback_data='add_group')
+        add_group = InlineKeyboardButton('Создать сценарий полива', callback_data='add_group')
         add_flower = InlineKeyboardButton('Добавить цветок', callback_data='add_flower')
-        check_groups = InlineKeyboardButton('Управление группами', callback_data='check_groups')
+        check_groups = InlineKeyboardButton('Управление сценариями полива', callback_data='check_groups')
         check_flowers = InlineKeyboardButton('Управление цветками', callback_data='check_flowers')
         base_markup.add(add_group, add_flower, check_groups, check_flowers)
         return base_markup
