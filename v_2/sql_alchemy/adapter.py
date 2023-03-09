@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import InvalidRequestError
 
-from .models import Base, User, FlowersGroup, Flower
+from v_2.sql_alchemy.models import Base, User, FlowersGroup, Flower
 
 
 class SQLAlchemyAdapter:
@@ -92,6 +92,14 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
+    def get_flowers_group(self, flowers_group_id: int) -> Type[FlowersGroup]:
+        try:
+            flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == flowers_group_id).one()
+            return flowers_group
+
+        except Exception as e:
+            self._logger.info(e)
+
     def add_flower(self, str_user_id: str, json_data: dict, bytes_photo: bytes) -> None:
         try:
             user_id_from_user_table = self.get_user_id(int(str_user_id))
@@ -109,3 +117,36 @@ class SQLAlchemyAdapter:
 
         except Exception as e:
             self._logger.info(e)
+
+    def get_user_flowers(self, user_id: int) -> list[Type[Flower]] | list:
+        try:
+            user_id_from_user_table = self.get_user_id(user_id)
+            user_flowers = self._session.query(Flower).filter(Flower.user_id == user_id_from_user_table).all()
+            return user_flowers
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def get_flower(self, flower_id: int) -> Type[Flower]:
+        try:
+            flower = self._session.query(Flower).filter(Flower.id == flower_id).one()
+            return flower
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def delete_flowers_group(self, flowers_group_id: int) -> None:
+
+        #TODO сделать каскадное удаление
+        try:
+            flowers_group_to_delete = self._session.query(FlowersGroup).get(flowers_group_id)
+            self._session.delete(flowers_group_to_delete)
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+
+if __name__ == '__main__':
+    db = SQLAlchemyAdapter(logger=logging.getLogger('test'), path_to_db='/home/dkhorkov/Рабочий стол/PythonProjects/Flowers_Telegram_Bot/v_2/sqlite_tg_bot_db.db')
+    db.delete_flowers_group(1)

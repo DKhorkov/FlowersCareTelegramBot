@@ -2,7 +2,7 @@ from typing import Type
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from v_2.configs import watering_intervals
-from v_2.sql_alchemy.models import FlowersGroup
+from v_2.sql_alchemy.models import FlowersGroup, Flower
 
 
 class BaseMarkupCreator:
@@ -31,8 +31,8 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
     def add_group_description_markup() -> InlineKeyboardMarkup:
         add_group_description_markup = InlineKeyboardMarkup(row_width=1)
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='group_adding_description BACK')
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_description MENU')
-        add_group_description_markup.add(back_button, menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_description MENU')
+        add_group_description_markup.add(back_button, menu_button)
         return add_group_description_markup
 
     @staticmethod
@@ -53,15 +53,15 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='group_adding_interval BACK')
         add_group_watering_interval_markup.add(back_button)
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_interval MENU')
-        add_group_watering_interval_markup.add(menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_interval MENU')
+        add_group_watering_interval_markup.add(menu_button)
         return add_group_watering_interval_markup
 
     @staticmethod
     def back_to_menu_markup() -> InlineKeyboardMarkup:
         back_to_menu_markup = InlineKeyboardMarkup(row_width=1)
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='MENU')
-        back_to_menu_markup.add(menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='MENU')
+        back_to_menu_markup.add(menu_button)
         return back_to_menu_markup
 
 
@@ -78,8 +78,8 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
     def add_flower_description_markup() -> InlineKeyboardMarkup:
         add_flower_description_markup = InlineKeyboardMarkup(row_width=1)
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_description BACK')
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_description MENU')
-        add_flower_description_markup.add(back_button, menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_description MENU')
+        add_flower_description_markup.add(back_button, menu_button)
         return add_flower_description_markup
 
     @staticmethod
@@ -102,17 +102,71 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
             add_flower_group_markup.add(group_button)
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_group BACK')
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_group MENU')
-        add_flower_group_markup.add(back_button, menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_group MENU')
+        add_flower_group_markup.add(back_button, menu_button)
         return add_flower_group_markup
+
+    @staticmethod
+    def add_flower_ask_photo_markup():
+        add_flower_ask_photo_markup = InlineKeyboardMarkup(row_width=1)
+        yes_button = InlineKeyboardButton(text='Да', callback_data='flower_adding_ask_photo yes')
+        no_button = InlineKeyboardButton(text='Нет', callback_data='flower_adding_ask_photo no')
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_ask_photo BACK')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_ask_photo MENU')
+        add_flower_ask_photo_markup.add(yes_button, no_button, back_button, menu_button)
+        return add_flower_ask_photo_markup
 
     @staticmethod
     def add_flower_photo_markup():
         add_flower_photo_markup = InlineKeyboardMarkup(row_width=1)
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_photo BACK')
-        menu = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_photo MENU')
-        add_flower_photo_markup.add(back_button, menu)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_photo MENU')
+        add_flower_photo_markup.add(back_button, menu_button)
         return add_flower_photo_markup
 
-class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator):
+
+class CheckFlowerMarkupCreator(BaseMarkupCreator):
+
+    @staticmethod
+    def check_flower_selection_markup(user_flowers: list[Type[Flower]]) -> InlineKeyboardMarkup:
+        check_flower_selection_markup = InlineKeyboardMarkup(row_width=1)
+        if len(user_flowers) == 0:
+            add_flower_button = InlineKeyboardButton(
+                text='Добавить растение',
+                callback_data='check_flower_selection add_flower'
+            )
+
+            check_flower_selection_markup.add(add_flower_button)
+
+        for flower in user_flowers:
+            flower_button = InlineKeyboardButton(
+                text=f'{flower.title}',
+                callback_data=f'check_flower_selection {flower.title} {flower.id}'
+            )
+
+            check_flower_selection_markup.add(flower_button)
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='check_flower_selection BACK')
+        check_flower_selection_markup.add(back_button)
+        return check_flower_selection_markup
+
+    @staticmethod
+    def check_flower_action_markup(flower_id: int) -> InlineKeyboardMarkup:
+        check_flower_action_markup = InlineKeyboardMarkup(row_width=1)
+        change_button = InlineKeyboardButton(
+            text='Редактировать растение',
+            callback_data=f'check_flower_action change {flower_id}'
+        )
+
+        delete_button = InlineKeyboardButton(
+            text='Удалить растение',
+            callback_data=f'check_flower_action delete {flower_id}'
+        )
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_flower_action BACK {flower_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_flower_action MENU {flower_id}')
+        check_flower_action_markup.add(change_button, delete_button, back_button, menu_button)
+        return check_flower_action_markup
+
+class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator, CheckFlowerMarkupCreator):
     pass

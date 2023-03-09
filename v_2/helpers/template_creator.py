@@ -53,6 +53,7 @@ class AddGroupTemplateCreator(BaseTemplateCreator):
 
 
 class AddFlowerTemplateCreator(BaseTemplateCreator):
+
     @staticmethod
     def add_flower_title() -> str:
         return 'Пожалуйста, отправьте боту сообщение с названием растения:'
@@ -76,6 +77,14 @@ class AddFlowerTemplateCreator(BaseTemplateCreator):
         return template
 
     @staticmethod
+    def add_flower_ask_photo(json: dict, str_user_id: str) -> str:
+        template = f"<b>Название растения:</b> {json[str_user_id]['flower_title']}\n" \
+                   f"<b>Заметки по растению:</b> {json[str_user_id]['flower_description']}\n" \
+                   f"<b>Сценарий полива:</b> {json[str_user_id]['flower_group_title']}\n\n" \
+                   f"Вы хотите добавить фотографию растения?"
+        return template
+
+    @staticmethod
     def add_flower_photo(json: dict, str_user_id: str) -> str:
         template = f"<b>Название растения:</b> {json[str_user_id]['flower_title']}\n" \
                    f"<b>Заметки по растению:</b> {json[str_user_id]['flower_description']}\n" \
@@ -92,5 +101,19 @@ class AddFlowerTemplateCreator(BaseTemplateCreator):
         return template
 
 
-class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator):
+class CheckFlowerTemplateCreator(BaseTemplateCreator):
+
+    @staticmethod
+    def check_flower_selection(empty_flowers: bool) -> str:
+        if empty_flowers:
+            return 'Пожалуйста, выберите растения для дальнейших действий:'
+        else:
+            return 'Вы еще не добавили ни одного растения! Пожалуйста, добавьте растение:'
+
+    @staticmethod
+    def check_flower_action(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, выберите действие:'
+
+
+class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator, CheckFlowerTemplateCreator):
     pass
