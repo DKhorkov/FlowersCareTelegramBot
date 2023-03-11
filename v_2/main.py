@@ -170,7 +170,7 @@ def add_group_description_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(calendar_callback.prefix))
-def add_last_time_watering_call_query(call: CallbackQuery):
+def add_group_last_time_watering_call_query(call: CallbackQuery):
     try:
         if call.message:
             json = JsonHandler(json_name).read_json_file()
@@ -242,7 +242,7 @@ def add_last_time_watering_call_query(call: CallbackQuery):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_interval'))
-def add_watering_interval_call_query(call):
+def add_group_watering_interval_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -299,7 +299,7 @@ def add_watering_interval_call_query(call):
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().back_to_menu_markup(),
+                    reply_markup=MarkupCreator().add_group_created_markup(),
                     media=InputMediaPhoto(
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().group_created(
@@ -314,8 +314,48 @@ def add_watering_interval_call_query(call):
         logger.error(e)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_created'))
+def add_group_created_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            if 'add_flower' in call.data:
+                json[str_user_id]['set_flower_title'] = True
+                JsonHandler(json_name).write_json_data(json)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().add_flower_title_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_flower_title(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
 @bot.callback_query_handler(func=lambda call: call.data.startswith('MENU'))
-def created_call_query(call):
+def back_to_menu_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -519,7 +559,7 @@ def add_flower_photo_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                flowers_groups = sql_alchemy.get_flowers_groups(call.from_user.id)
+                flowers_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
@@ -583,7 +623,7 @@ def add_flower_photo_call_query(call):
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().back_to_menu_markup(),
+                    reply_markup=MarkupCreator().add_flower_created_markup(),
                     media=InputMediaPhoto(
                         media=photo,
                         caption=TemplateCreator().flower_created(
@@ -619,6 +659,46 @@ def add_flower_photo_call_query(call):
                             json=json,
                             str_user_id=str_user_id
                         ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_created'))
+def add_flower_created_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            if 'another' in call.data:
+                json[str_user_id]['set_flower_title'] = True
+                JsonHandler(json_name).write_json_data(json)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().add_flower_title_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_flower_title(),
                         parse_mode='HTML'
                     )
                 )
@@ -734,6 +814,145 @@ def check_flower_selection_call_query(call):
         logger.error(e)
 
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_action'))
+def check_flower_action_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            flower_id = int(call.data.split(' ')[-1])
+            flower = sql_alchemy.get_flower(flower_id)
+
+            if 'BACK' in call.data:
+                user_flowers = sql_alchemy.get_user_flowers(call.from_user.id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_flower_selection_markup(
+                        user_flowers=user_flowers
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_flower_selection(
+                            empty_flowers=True if len(user_flowers) > 0 else False
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'change' in call.data:
+                # TODO Сделать логику редактирования цветов
+                bot.answer_callback_query(
+                    callback_query_id=call.id,
+                    text='Coming soon!'
+                )
+
+            elif 'delete' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_flower_confirm_delete_markup(
+                        flower_id=flower_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=pickle.loads(flower.photo),
+                        caption=TemplateCreator().check_flower_confirm_delete(
+                            flower_description=DatabaseParser.parse_flower(
+                                sql_alchemy_adapter=sql_alchemy,
+                                flower=flower
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_confirm_delete'))
+def check_flower_confirm_delete_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            flower_id = int(call.data.split(' ')[-1])
+            flower = sql_alchemy.get_flower(flower_id)
+
+            if 'NO' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_flower_action_markup(
+                        flower_id=flower_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=pickle.loads(flower.photo),
+                        caption=TemplateCreator().check_flower_action(
+                            flower_description=DatabaseParser.parse_flower(
+                                sql_alchemy_adapter=sql_alchemy,
+                                flower=flower
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'YES' in call.data:
+                sql_alchemy.delete_flower(flower_id)
+
+                user_flowers = sql_alchemy.get_user_flowers(call.from_user.id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_flower_selection_markup(
+                        user_flowers=user_flowers
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_flower_selection(
+                            empty_flowers=True if len(user_flowers) > 0 else False
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
 """
     Ниже идет логика по просмотру, редактированию и удалению сценариев (групп) полива.
 """
@@ -741,7 +960,226 @@ def check_flower_selection_call_query(call):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_groups'))
 def check_groups_call_query(call):
-    pass
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+
+            bot.edit_message_media(
+                chat_id=call.from_user.id,
+                message_id=json[str_user_id]['message_for_update'],
+                reply_markup=MarkupCreator().check_group_selection_markup(
+                    user_groups=user_groups
+                ),
+                media=InputMediaPhoto(
+                    media=open('static/images/media_message_picture.png', 'rb'),
+                    caption=TemplateCreator().check_group_selection(
+                        empty_groups=True if len(user_groups) > 0 else False
+                    ),
+                    parse_mode='HTML'
+                )
+            )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_selection'))
+def check_group_selection_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            if 'BACK' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'add_group' in call.data:
+                json[str_user_id]['set_group_title'] = True
+                JsonHandler(json_name).write_json_data(json)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().add_group_title_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().add_group_title(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            else:
+                group_id = int(call.data.split(' ')[-1])
+                group = sql_alchemy.get_flowers_group(group_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_action_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_action(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_action'))
+def check_group_action_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_flowers_group(group_id)
+
+            if 'BACK' in call.data:
+                user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_selection_markup(
+                        user_groups=user_groups
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_selection(
+                            empty_groups=True if len(user_groups) > 0 else False
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'change' in call.data:
+                # TODO Сделать логику редактирования сценариев полива
+                bot.answer_callback_query(
+                    callback_query_id=call.id,
+                    text='Coming soon!'
+                )
+
+            elif 'delete' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_confirm_delete_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_confirm_delete(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_confirm_delete'))
+def check_group_confirm_delete_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_flowers_group(group_id)
+
+            if 'NO' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_action_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_action(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'YES' in call.data:
+                sql_alchemy.delete_flowers_group(group_id)
+
+                user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_selection_markup(
+                        user_groups=user_groups
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_selection(
+                            empty_groups=True if len(user_groups) > 0 else False
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
 
 
 """
@@ -851,7 +1289,7 @@ def text_messages_handler(message):
             message_id=message.id
         )
 
-        flowers_groups = sql_alchemy.get_flowers_groups(message.from_user.id)
+        flowers_groups = sql_alchemy.get_user_flowers_groups(message.from_user.id)
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
@@ -910,7 +1348,7 @@ def photo_messages_handler(message):
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().back_to_menu_markup(),
+            reply_markup=MarkupCreator().add_flower_created_markup(),
             media=InputMediaPhoto(
                 media=pickle.loads(bytes_photo),
                 caption=TemplateCreator().flower_created(

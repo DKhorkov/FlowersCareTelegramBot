@@ -16,9 +16,6 @@ class User(Base):
     first_name = Column(Text(), nullable=False)
     last_name = Column(Text(), nullable=False)
     is_bot = Column(Boolean(), nullable=False)
-    flowers_group = relationship("FlowersGroup", passive_deletes=True, cascade='all, delete', back_populates='user')
-    flower = relationship("Flower", passive_deletes=True, cascade='all, delete', back_populates='user')
-
 
 class FlowersGroup(Base):
     __tablename__ = 'flowers_group'
@@ -29,8 +26,6 @@ class FlowersGroup(Base):
     last_time_watering_date = Column(Text(), nullable=False)
     watering_interval = Column(Text(), nullable=False)
     next_watering_date = Column(Text(), nullable=False)
-    user = relationship("User", passive_deletes=True, cascade='all, delete', back_populates='flowers_group')
-    flower = relationship("Flower", passive_deletes=True, cascade='all, delete', back_populates='flowers_group')
 
 
 class Flower(Base):
@@ -41,5 +36,3 @@ class Flower(Base):
     title = Column(Text(), nullable=False)
     description = Column(Text(), nullable=False)
     photo = Column(BLOB(), nullable=False)
-    user = relationship("User", passive_deletes=True, cascade='all, delete', back_populates='flower')
-    flowers_group = relationship("FlowersGroup", passive_deletes=True, cascade='all, delete', back_populates='flower')

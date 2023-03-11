@@ -17,6 +17,13 @@ class BaseMarkupCreator:
         base_markup.add(add_group, add_flower, check_groups, check_flowers)
         return base_markup
 
+    @staticmethod
+    def back_to_menu_markup() -> InlineKeyboardMarkup:
+        back_to_menu_markup = InlineKeyboardMarkup(row_width=1)
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='MENU')
+        back_to_menu_markup.add(menu_button)
+        return back_to_menu_markup
+
 
 class AddGroupMarkupCreator(BaseMarkupCreator):
 
@@ -58,11 +65,16 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
         return add_group_watering_interval_markup
 
     @staticmethod
-    def back_to_menu_markup() -> InlineKeyboardMarkup:
-        back_to_menu_markup = InlineKeyboardMarkup(row_width=1)
-        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='MENU')
-        back_to_menu_markup.add(menu_button)
-        return back_to_menu_markup
+    def add_group_created_markup() -> InlineKeyboardMarkup:
+        add_flower_created_markup = InlineKeyboardMarkup(row_width=1)
+        add_flower_button = InlineKeyboardButton(
+            text='Добавить растение',
+            callback_data='group_adding_created add_flower'
+        )
+
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_created MENU')
+        add_flower_created_markup.add(add_flower_button, menu_button)
+        return add_flower_created_markup
 
 
 class AddFlowerMarkupCreator(BaseMarkupCreator):
@@ -124,6 +136,18 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
         add_flower_photo_markup.add(back_button, menu_button)
         return add_flower_photo_markup
 
+    @staticmethod
+    def add_flower_created_markup() -> InlineKeyboardMarkup:
+        add_flower_created_markup = InlineKeyboardMarkup(row_width=1)
+        another_flower_button = InlineKeyboardButton(
+            text='Добавить еще одно растение',
+            callback_data='flower_adding_created another'
+        )
+
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_created MENU')
+        add_flower_created_markup.add(another_flower_button, menu_button)
+        return add_flower_created_markup
+
 
 class CheckFlowerMarkupCreator(BaseMarkupCreator):
 
@@ -168,5 +192,92 @@ class CheckFlowerMarkupCreator(BaseMarkupCreator):
         check_flower_action_markup.add(change_button, delete_button, back_button, menu_button)
         return check_flower_action_markup
 
-class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator, CheckFlowerMarkupCreator):
+    @staticmethod
+    def check_flower_confirm_delete_markup(flower_id: int) -> InlineKeyboardMarkup:
+        check_flower_confirm_delete_markup = InlineKeyboardMarkup(row_width=1)
+        yes_button = InlineKeyboardButton(
+            text='Подтвердить удаление',
+            callback_data=f'check_flower_confirm_delete YES {flower_id}'
+        )
+
+        no_button = InlineKeyboardButton(
+            text='Отменить удаление',
+            callback_data=f'check_flower_confirm_delete NO {flower_id}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'check_flower_confirm_delete MENU {flower_id}'
+        )
+
+        check_flower_confirm_delete_markup.add(yes_button, no_button, menu_button)
+        return check_flower_confirm_delete_markup
+
+
+class CheckGroupMarkupCreator(BaseMarkupCreator):
+
+    @staticmethod
+    def check_group_selection_markup(user_groups: list[Type[FlowersGroup]]) -> InlineKeyboardMarkup:
+        check_group_selection_markup = InlineKeyboardMarkup(row_width=1)
+        if len(user_groups) == 0:
+            add_flower_button = InlineKeyboardButton(
+                text='Добавить сценарий полива растений',
+                callback_data='check_group_selection add_group'
+            )
+
+            check_group_selection_markup.add(add_flower_button)
+
+        for group in user_groups:
+            group_button = InlineKeyboardButton(
+                text=f'{group.title}',
+                callback_data=f'check_group_selection {group.title} {group.id}'
+            )
+
+            check_group_selection_markup.add(group_button)
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='check_group_selection BACK')
+        check_group_selection_markup.add(back_button)
+        return check_group_selection_markup
+
+    @staticmethod
+    def check_group_action_markup(group_id: int) -> InlineKeyboardMarkup:
+        check_group_action_markup = InlineKeyboardMarkup(row_width=1)
+        change_button = InlineKeyboardButton(
+            text='Редактировать сценарий полива',
+            callback_data=f'check_group_action change {group_id}'
+        )
+
+        delete_button = InlineKeyboardButton(
+            text='Удалить сценарий полива',
+            callback_data=f'check_group_action delete {group_id}'
+        )
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_group_action BACK {group_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_group_action MENU {group_id}')
+        check_group_action_markup.add(change_button, delete_button, back_button, menu_button)
+        return check_group_action_markup
+
+    @staticmethod
+    def check_group_confirm_delete_markup(group_id: int) -> InlineKeyboardMarkup:
+        check_group_confirm_delete_markup = InlineKeyboardMarkup(row_width=1)
+        yes_button = InlineKeyboardButton(
+            text='Подтвердить удаление',
+            callback_data=f'check_group_confirm_delete YES {group_id}'
+        )
+
+        no_button = InlineKeyboardButton(
+            text='Отменить удаление',
+            callback_data=f'check_group_confirm_delete NO {group_id}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'check_group_confirm_delete MENU {group_id}'
+        )
+
+        check_group_confirm_delete_markup.add(yes_button, no_button, menu_button)
+        return check_group_confirm_delete_markup
+
+
+class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator, CheckFlowerMarkupCreator, CheckGroupMarkupCreator):
     pass

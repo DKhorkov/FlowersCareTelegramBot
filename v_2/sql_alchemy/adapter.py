@@ -27,7 +27,11 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def check_if_user_already_registered(self, user_id) -> bool | None:
+    """
+        Ниже идет логика взаимодействия с пользователями.
+    """
+
+    def check_if_user_already_registered(self, user_id: int) -> bool | None:
         try:
             user = self._session.query(User).filter(User.user_id == user_id).first()
             if user is None:
@@ -55,6 +59,18 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
+    def get_user_id(self, user_id: int) -> int | None:
+        try:
+            id = self._session.query(User.id).filter(User.user_id == user_id).one()[0]
+            return id
+
+        except Exception as e:
+            self._logger.info(e)
+
+    """
+        Ниже идет логика взаимодействия с группами (сценариями полива).
+    """
+
     def add_flower_group(self, str_user_id: str, json_data: dict) -> None:
         try:
             user_id_from_user_table = self.get_user_id(int(str_user_id))
@@ -74,20 +90,12 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def get_user_id(self, user_id: int) -> int | None:
-        try:
-            id = self._session.query(User.id).filter(User.user_id == user_id).one()[0]
-            return id
-
-        except Exception as e:
-            self._logger.info(e)
-
-    def get_flowers_groups(self, user_id: int) -> list[Type[FlowersGroup]] | list:
+    def get_user_flowers_groups(self, user_id: int) -> list[Type[FlowersGroup]] | list:
         try:
             user_id_from_user_table = self.get_user_id(user_id)
-            flower_groups = self._session.query(FlowersGroup).filter(
+            user_flowers_groups = self._session.query(FlowersGroup).filter(
                 FlowersGroup.user_id == user_id_from_user_table).all()
-            return flower_groups
+            return user_flowers_groups
 
         except Exception as e:
             self._logger.info(e)
@@ -99,6 +107,24 @@ class SQLAlchemyAdapter:
 
         except Exception as e:
             self._logger.info(e)
+
+    def delete_flowers_group(self, flowers_group_id: int) -> None:
+        try:
+            flowers_group_to_delete = self._session.query(FlowersGroup).get(flowers_group_id)
+            self._session.delete(flowers_group_to_delete)
+
+            flowers_to_delete = self._session.query(Flower).filter(Flower.group_id == flowers_group_id).all()
+            for flower in flowers_to_delete:
+                self._session.delete(flower)
+
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    """
+        Ниже идет логика взаимодействия с цветами (растениями).
+    """
 
     def add_flower(self, str_user_id: str, json_data: dict, bytes_photo: bytes) -> None:
         try:
@@ -135,18 +161,11 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def delete_flowers_group(self, flowers_group_id: int) -> None:
-
-        #TODO сделать каскадное удаление
+    def delete_flower(self, flower_id: int) -> None:
         try:
-            flowers_group_to_delete = self._session.query(FlowersGroup).get(flowers_group_id)
-            self._session.delete(flowers_group_to_delete)
+            flower_to_delete = self._session.query(Flower).get(flower_id)
+            self._session.delete(flower_to_delete)
             self._session.commit()
 
         except Exception as e:
             self._logger.info(e)
-
-
-if __name__ == '__main__':
-    db = SQLAlchemyAdapter(logger=logging.getLogger('test'), path_to_db='/home/dkhorkov/Рабочий стол/PythonProjects/Flowers_Telegram_Bot/v_2/sqlite_tg_bot_db.db')
-    db.delete_flowers_group(1)

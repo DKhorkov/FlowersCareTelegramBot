@@ -12,3 +12,11 @@ class DatabaseParser:
         return f"<b>Название растения:</b> {flower.title}\n" \
                f"<b>Заметки по растению:</b> {flower.description}\n" \
                f"<b>Сценарий полива:</b> {flowers_group.title}\n\n"
+
+    @staticmethod
+    def parse_group(group: Type[FlowersGroup]) -> str:
+        return f"<b>Название сценария полива:</b> {group.title}\n" \
+               f"<b>Описание сценария полива:</b> {group.description}\n" \
+               f"<b>Дата последнего полива:</b> {group.last_time_watering_date}\n" \
+               f"<b>Интервал полива:</b> {group.watering_interval}\n" \
+               f"<b>Дата следующего полива:</b> {group.next_watering_date}\n\n"

@@ -112,8 +112,31 @@ class CheckFlowerTemplateCreator(BaseTemplateCreator):
 
     @staticmethod
     def check_flower_action(flower_description: str) -> str:
-        return f'{flower_description}\n\n Пожалуйста, выберите действие:'
+        return f'{flower_description}\n\n Пожалуйста, выберите действие для данного растения:'
+
+    @staticmethod
+    def check_flower_confirm_delete(flower_description: str) -> str:
+        return f'{flower_description}\n\n Вы действительно хотите удалить данное растение?'
 
 
-class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator, CheckFlowerTemplateCreator):
+class CheckGroupTemplateCreator(BaseTemplateCreator):
+
+    @staticmethod
+    def check_group_selection(empty_groups: bool) -> str:
+        if empty_groups:
+            return 'Пожалуйста, выберите сценарий полива растений для дальнейших действий:'
+        else:
+            return 'Вы еще не добавили ни одного сценария полива растений! Пожалуйста, добавьте сценарий полива:'
+
+    @staticmethod
+    def check_group_action(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, выберите действие для данного сценария полива:'
+
+    @staticmethod
+    def check_group_confirm_delete(group_description: str) -> str:
+        return f'{group_description}\n\n Вы действительно хотите удалить данный сценарий полива?'
+
+
+class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator, CheckFlowerTemplateCreator,
+                      CheckGroupTemplateCreator):
     pass
