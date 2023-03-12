@@ -169,3 +169,35 @@ class SQLAlchemyAdapter:
 
         except Exception as e:
             self._logger.info(e)
+
+    def change_flower_title(self, flower_id: int, new_title: str) -> None:
+        try:
+            self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.title: new_title})
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_flower_description(self, flower_id: int, new_description: str) -> None:
+        try:
+            self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.description: new_description})
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_flower_photo(self, flower_id: int, new_bytes_photo: bytes) -> None:
+        try:
+            self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.photo: new_bytes_photo})
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_flower_group(self, flower_id: int, new_group_id: int) -> None:
+        try:
+            self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.group_id: new_group_id})
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)

@@ -213,6 +213,69 @@ class CheckFlowerMarkupCreator(BaseMarkupCreator):
         check_flower_confirm_delete_markup.add(yes_button, no_button, menu_button)
         return check_flower_confirm_delete_markup
 
+    @staticmethod
+    def check_flower_choose_changing_point_markup(flower_id: int) -> InlineKeyboardMarkup:
+        check_flower_choose_changing_point_markup = InlineKeyboardMarkup(row_width=1)
+        change_title_button = InlineKeyboardButton(
+            text='Изменить название растения',
+            callback_data=f'check_flower_choose_changing_point title {flower_id}'
+        )
+
+        change_description_button = InlineKeyboardButton(
+            text='Изменить заметки по растению',
+            callback_data=f'check_flower_choose_changing_point description {flower_id}'
+        )
+
+        change_photo_button = InlineKeyboardButton(
+            text='Изменить фотографию растения',
+            callback_data=f'check_flower_choose_changing_point photo {flower_id}'
+        )
+
+        change_group_button = InlineKeyboardButton(
+            text='Изменить сценарий полива растения',
+            callback_data=f'check_flower_choose_changing_point group {flower_id}'
+        )
+
+        back_button = InlineKeyboardButton(
+            text='Назад ↩️',
+            callback_data=f'check_flower_choose_changing_point BACK {flower_id}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'check_flower_choose_changing_point MENU {flower_id}'
+        )
+
+        check_flower_choose_changing_point_markup.add(
+            change_title_button, change_description_button, change_photo_button, change_group_button, back_button,
+            menu_button)
+
+        return check_flower_choose_changing_point_markup
+
+    @staticmethod
+    def check_flower_change_markup(flower_id: int) -> InlineKeyboardMarkup:
+        check_flower_change_title_markup = InlineKeyboardMarkup(row_width=1)
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_flower_change BACK {flower_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_flower_change MENU {flower_id}')
+        check_flower_change_title_markup.add(back_button, menu_button)
+        return check_flower_change_title_markup
+
+    @staticmethod
+    def check_flower_change_group_markup(flower_id: int, user_groups: list[Type[FlowersGroup]]) -> InlineKeyboardMarkup:
+        check_flower_change_group_markup = InlineKeyboardMarkup(row_width=1)
+        for group in user_groups:
+            group_button = InlineKeyboardButton(
+                text=f'{group.title}',
+                callback_data=f'check_flower_change_group {group.title} {group.id}'
+            )
+
+            check_flower_change_group_markup.add(group_button)
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_flower_change_group BACK {flower_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_flower_change_group MENU {flower_id}')
+        check_flower_change_group_markup.add(back_button, menu_button)
+        return check_flower_change_group_markup
+
 
 class CheckGroupMarkupCreator(BaseMarkupCreator):
 

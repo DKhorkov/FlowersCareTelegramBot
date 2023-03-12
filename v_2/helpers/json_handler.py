@@ -36,6 +36,7 @@ class JsonHandler:
         json_data[str_user_id]['set_flower_title'] = False
         json_data[str_user_id]['set_flower_description'] = False
         json_data[str_user_id]['set_flower_photo'] = False
+        json_data[str_user_id]['refactor'] = False
         self.write_json_data(json_data)
 
     def process_watering_interval(self, json_data: dict, str_user_id: str, watering_interval: int) -> None:
@@ -45,3 +46,8 @@ class JsonHandler:
             '%Y-%m-%d %H:%M:%S') + timedelta(days=watering_interval)
         json_data[str_user_id]['next_watering_date'] = str(next_watering_date)
         self.write_json_data(json_data)
+
+    def check_refactor_status(self, str_user_id: str) -> bool:
+        json_data = self.read_json_file()
+        refactor_status = json_data[str_user_id]['refactor']
+        return refactor_status

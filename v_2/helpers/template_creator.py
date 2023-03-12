@@ -118,6 +118,26 @@ class CheckFlowerTemplateCreator(BaseTemplateCreator):
     def check_flower_confirm_delete(flower_description: str) -> str:
         return f'{flower_description}\n\n Вы действительно хотите удалить данное растение?'
 
+    @staticmethod
+    def check_flower_choose_changing_point(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, выберите пункт для редактирования данного растения:'
+
+    @staticmethod
+    def check_flower_change_title(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, отправьте боту сообщение с новым названием для данного растения:'
+
+    @staticmethod
+    def check_flower_change_description(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, отправьте боту сообщение с новыми заметками для данного растения:'
+
+    @staticmethod
+    def check_flower_change_photo(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, отправьте боту новую фотографию для данного растения:'
+
+    @staticmethod
+    def check_flower_change_group(flower_description: str) -> str:
+        return f'{flower_description}\n\n Пожалуйста, выберите сценарий полива для данного растения:'
+
 
 class CheckGroupTemplateCreator(BaseTemplateCreator):
 
