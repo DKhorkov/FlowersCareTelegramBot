@@ -341,6 +341,94 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
         check_group_confirm_delete_markup.add(yes_button, no_button, menu_button)
         return check_group_confirm_delete_markup
 
+    @staticmethod
+    def check_group_choose_changing_point_markup(group_id: int) -> InlineKeyboardMarkup:
+        check_group_choose_changing_point_markup = InlineKeyboardMarkup(row_width=1)
+        change_title_button = InlineKeyboardButton(
+            text='Изменить название',
+            callback_data=f'check_group_choose_changing_point title {group_id}'
+        )
+
+        change_description_button = InlineKeyboardButton(
+            text='Изменить описание',
+            callback_data=f'check_group_choose_changing_point description {group_id}'
+        )
+
+        change_last_time_watering_button = InlineKeyboardButton(
+            text='Изменить дату последнего полива',
+            callback_data=f'check_group_choose_changing_point last_watering_date {group_id}'
+        )
+
+        change_watering_interval_button = InlineKeyboardButton(
+            text='Изменить интервал полива',
+            callback_data=f'check_group_choose_changing_point watering_interval {group_id}'
+        )
+
+        back_button = InlineKeyboardButton(
+            text='Назад ↩️',
+            callback_data=f'check_group_choose_changing_point BACK {group_id}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'check_group_choose_changing_point MENU {group_id}'
+        )
+
+        check_group_choose_changing_point_markup.add(
+            change_title_button, change_description_button, change_last_time_watering_button,
+            change_watering_interval_button, back_button, menu_button)
+
+        return check_group_choose_changing_point_markup
+
+    @staticmethod
+    def check_group_change_markup(group_id: int) -> InlineKeyboardMarkup:
+        check_flower_change_title_markup = InlineKeyboardMarkup(row_width=1)
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_group_change BACK {group_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_group_change MENU {group_id}')
+        check_flower_change_title_markup.add(back_button, menu_button)
+        return check_flower_change_title_markup
+
+    @staticmethod
+    def check_group_change_watering_interval_markup(group_id: int) -> InlineKeyboardMarkup:
+        check_group_change_watering_interval_markup = InlineKeyboardMarkup(row_width=1)
+        interval_buttons_list = []
+        for num in watering_intervals:
+            if num in [1, 21]:
+                interval_button = InlineKeyboardButton(
+                    text=f'{num} день',
+                    callback_data=f'check_group_change_watering_interval {num} {group_id}'
+                )
+
+            elif num in [2, 3, 4]:
+                interval_button = InlineKeyboardButton(
+                    text=f'{num} дня',
+                    callback_data=f'check_group_change_watering_interval {num} {group_id}'
+                )
+
+            else:
+                interval_button = InlineKeyboardButton(
+                    text=f'{num} дней',
+                    callback_data=f'check_group_change_watering_interval {num} {group_id}'
+                )
+
+            interval_buttons_list.append(interval_button)
+
+        check_group_change_watering_interval_markup.add(*interval_buttons_list)
+
+
+        back_button = InlineKeyboardButton(
+            text='Назад ↩️',
+            callback_data=f'check_group_change_watering_interval BACK {group_id}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'check_group_change_watering_interval MENU {group_id}'
+        )
+
+        check_group_change_watering_interval_markup.add(back_button, menu_button)
+        return check_group_change_watering_interval_markup
+
 
 class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator, CheckFlowerMarkupCreator, CheckGroupMarkupCreator):
     pass

@@ -24,7 +24,8 @@ logger = get_logger('bot_logs')
 bot = TeleBot(token=TOKEN)
 json_name = 'users_data_json'
 calendar = CustomizedCalendar(language=RUSSIAN_LANGUAGE)
-calendar_callback = CallbackData("calendar", "action", "year", "month", "day")
+create_group_calendar_callback = CallbackData("create_group_calendar", "action", "year", "month", "day")
+change_group_calendar_callback = CallbackData("change_group_calendar", "action", "year", "month", "day")
 sql_alchemy = SQLAlchemyAdapter(logger=logger)
 sql_alchemy.create_tables()
 
@@ -169,15 +170,15 @@ def add_group_description_call_query(call):
         logger.error(e)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith(calendar_callback.prefix))
-def add_group_last_time_watering_call_query(call: CallbackQuery):
+@bot.callback_query_handler(func=lambda call: call.data.startswith(create_group_calendar_callback.prefix))
+def add_group_last_watering_date_call_query(call: CallbackQuery):
     try:
         if call.message:
             json = JsonHandler(json_name).read_json_file()
             str_user_id = str(call.from_user.id)
 
-            name, action, year, month, day = call.data.split(calendar_callback.sep)
-            last_time_watering_date = calendar.calendar_query_handler(
+            name, action, year, month, day = call.data.split(create_group_calendar_callback.sep)
+            last_watering_date = calendar.calendar_query_handler(
                 bot=bot,
                 call=call,
                 name=name,
@@ -188,7 +189,7 @@ def add_group_last_time_watering_call_query(call: CallbackQuery):
             )
 
             if action == "DAY":
-                json[str_user_id]['last_time_watering_date'] = str(last_time_watering_date)
+                json[str_user_id]['last_watering_date'] = str(last_watering_date)
                 JsonHandler(json_name).write_json_data(json)
 
                 bot.edit_message_media(
@@ -255,7 +256,7 @@ def add_group_watering_interval_call_query(call):
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
                     reply_markup=calendar.create_calendar(
-                        name=calendar_callback.prefix,
+                        name=create_group_calendar_callback.prefix,
                         year=now.year,
                         month=now.month
                     ),
@@ -291,7 +292,7 @@ def add_group_watering_interval_call_query(call):
                     watering_interval=watering_interval
                 )
 
-                sql_alchemy.add_flower_group(
+                sql_alchemy.add_group(
                     str_user_id=str_user_id,
                     json_data=JsonHandler(json_name).read_json_file()
                 )
@@ -559,7 +560,7 @@ def add_flower_photo_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                flowers_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+                flowers_groups = sql_alchemy.get_user_groups(call.from_user.id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
@@ -1086,7 +1087,7 @@ def check_flower_choose_changing_point_call_query(call):
                     json[str_user_id]['flower_id'] = flower_id
                     JsonHandler(json_name).write_json_data(json)
 
-                    user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+                    user_groups = sql_alchemy.get_user_groups(call.from_user.id)
 
                     bot.edit_message_media(
                         chat_id=call.from_user.id,
@@ -1112,7 +1113,7 @@ def check_flower_choose_changing_point_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_change_group'))
-def check_flower_change_call_query(call):
+def check_flower_change_group_call_query(call):
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -1168,12 +1169,12 @@ def check_flower_change_call_query(call):
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
                     message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().check_flower_action_markup(
+                    reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
                         flower_id=json[str_user_id]['flower_id']
                     ),
                     media=InputMediaPhoto(
                         media=pickle.loads(flower.photo),
-                        caption=TemplateCreator().check_flower_action(
+                        caption=TemplateCreator().check_flower_choose_changing_point(
                             flower_description=DatabaseParser.parse_flower(
                                 sql_alchemy_adapter=sql_alchemy,
                                 flower=flower
@@ -1247,7 +1248,7 @@ def check_groups_call_query(call):
             str_user_id = str(call.from_user.id)
             json = JsonHandler(json_name).read_json_file()
 
-            user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+            user_groups = sql_alchemy.get_user_groups(call.from_user.id)
 
             bot.edit_message_media(
                 chat_id=call.from_user.id,
@@ -1304,7 +1305,7 @@ def check_group_selection_call_query(call):
 
             else:
                 group_id = int(call.data.split(' ')[-1])
-                group = sql_alchemy.get_flowers_group(group_id)
+                group = sql_alchemy.get_group(group_id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
@@ -1335,10 +1336,10 @@ def check_group_action_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             group_id = int(call.data.split(' ')[-1])
-            group = sql_alchemy.get_flowers_group(group_id)
+            group = sql_alchemy.get_group(group_id)
 
             if 'BACK' in call.data:
-                user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+                user_groups = sql_alchemy.get_user_groups(call.from_user.id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
@@ -1370,10 +1371,21 @@ def check_group_action_call_query(call):
                 )
 
             elif 'change' in call.data:
-                # TODO Сделать логику редактирования сценариев полива
-                bot.answer_callback_query(
-                    callback_query_id=call.id,
-                    text='Coming soon!'
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
                 )
 
             elif 'delete' in call.data:
@@ -1406,7 +1418,7 @@ def check_group_confirm_delete_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             group_id = int(call.data.split(' ')[-1])
-            group = sql_alchemy.get_flowers_group(group_id)
+            group = sql_alchemy.get_group(group_id)
 
             if 'NO' in call.data:
                 bot.edit_message_media(
@@ -1441,9 +1453,9 @@ def check_group_confirm_delete_call_query(call):
                 )
 
             elif 'YES' in call.data:
-                sql_alchemy.delete_flowers_group(group_id)
+                sql_alchemy.delete_group(group_id)
 
-                user_groups = sql_alchemy.get_user_flowers_groups(call.from_user.id)
+                user_groups = sql_alchemy.get_user_groups(call.from_user.id)
 
                 bot.edit_message_media(
                     chat_id=call.from_user.id,
@@ -1456,6 +1468,342 @@ def check_group_confirm_delete_call_query(call):
                         caption=TemplateCreator().check_group_selection(
                             empty_groups=True if len(user_groups) > 0 else False
                         ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_choose_changing_point'))
+def check_group_choose_changing_point_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+            point_to_change = call.data.split(' ')[-2]
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_group(group_id)
+
+            match point_to_change:
+                case 'BACK':
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=MarkupCreator().check_group_action_markup(
+                            group_id=group_id
+                        ),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().check_group_action(
+                                group_description=DatabaseParser.parse_group(
+                                    group=group
+                                )
+                            ),
+                            parse_mode='HTML'
+                        )
+                    )
+
+                case "MENU":
+                    JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=MarkupCreator().base_markup(),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().base_template(),
+                            parse_mode='HTML'
+                        )
+                    )
+
+                case "title":
+                    json[str_user_id]['set_group_title'] = True
+                    json[str_user_id]['refactor'] = True
+                    json[str_user_id]['group_id'] = group_id
+                    JsonHandler(json_name).write_json_data(json)
+
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=MarkupCreator().check_group_change_markup(
+                            group_id=group_id
+                        ),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().check_group_change_title(
+                                group_description=DatabaseParser.parse_group(
+                                    group=group
+                                )
+                            ),
+                            parse_mode='HTML'
+                        )
+                    )
+
+                case "description":
+                    json[str_user_id]['set_group_description'] = True
+                    json[str_user_id]['refactor'] = True
+                    json[str_user_id]['group_id'] = group_id
+                    JsonHandler(json_name).write_json_data(json)
+
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=MarkupCreator().check_group_change_markup(
+                            group_id=group_id
+                        ),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().check_group_change_description(
+                                group_description=DatabaseParser.parse_group(
+                                    group=group
+                                )
+                            ),
+                            parse_mode='HTML'
+                        )
+                    )
+
+                case "last_watering_date":
+                    now = datetime.now()
+                    json[str_user_id]['group_id'] = group_id
+                    JsonHandler(json_name).write_json_data(json)
+
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=calendar.create_calendar(
+                            name=change_group_calendar_callback.prefix,
+                            year=now.year,
+                            month=now.month
+                        ),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().check_group_change_last_watering_date(
+                                group_description=DatabaseParser.parse_group(
+                                    group=group
+                                )
+                            ),
+                            parse_mode='HTML'
+                        )
+                    )
+
+                case "watering_interval":
+                    bot.edit_message_media(
+                        chat_id=call.from_user.id,
+                        message_id=json[str_user_id]['message_for_update'],
+                        reply_markup=MarkupCreator().check_group_change_watering_interval_markup(
+                            group_id=group_id
+                        ),
+                        media=InputMediaPhoto(
+                            media=open('static/images/media_message_picture.png', 'rb'),
+                            caption=TemplateCreator().check_group_change_watering_interval(
+                                group_description=DatabaseParser.parse_group(
+                                    group=group
+                                )
+                            ),
+                            parse_mode='HTML'
+                        )
+                    )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_change_watering_interval'))
+def check_group_change_watering_interval_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_group(group_id)
+
+            if 'BACK' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            else:
+                new_watering_interval = int(call.data.split(' ')[-2])
+
+                sql_alchemy.change_group_watering_interval(
+                    group_id=group_id,
+                    new_watering_interval=new_watering_interval
+                )
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith(change_group_calendar_callback.prefix))
+def check_group_change_last_watering_date_call_query(call: CallbackQuery):
+    try:
+        if call.message:
+            json = JsonHandler(json_name).read_json_file()
+            str_user_id = str(call.from_user.id)
+
+            group_id = json[str_user_id]['group_id']
+            group = sql_alchemy.get_group(group_id)
+
+            name, action, year, month, day = call.data.split(create_group_calendar_callback.sep)
+            new_last_watering_date = calendar.calendar_query_handler(
+                bot=bot,
+                call=call,
+                name=name,
+                action=action,
+                year=year,
+                month=month,
+                day=day
+            )
+
+            if action == "DAY":
+                sql_alchemy.change_group_last_watering_date(
+                    group_id=group_id,
+                    new_last_watering_date=new_last_watering_date
+                )
+
+                group = sql_alchemy.get_group(group_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif action == "MENU":
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif action == "BACK":
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_change'))
+def check_group_change_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_group(group_id)
+
+            if 'BACK' in call.data:
+                # TODO наверное, вынести куда-то отдельно в метод, ибо по кд вызывается в редактировании цветка
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_choose_changing_point(
+                            group_description=DatabaseParser.parse_group(
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
                         parse_mode='HTML'
                     )
                 )
@@ -1523,7 +1871,7 @@ def create_item_text_messages_handler(message):
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
             reply_markup=calendar.create_calendar(
-                name=calendar_callback.prefix,
+                name=create_group_calendar_callback.prefix,
                 year=now.year,
                 month=now.month
             ),
@@ -1572,7 +1920,7 @@ def create_item_text_messages_handler(message):
             message_id=message.id
         )
 
-        flowers_groups = sql_alchemy.get_user_flowers_groups(message.from_user.id)
+        flowers_groups = sql_alchemy.get_user_groups(message.from_user.id)
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
@@ -1664,60 +2012,77 @@ def change_item_text_messages_handler(message):
 
         return
 
-    # if json[str_user_id]['set_group_title']:
-    #     json[str_user_id]['set_group_title'] = False
-    #     json[str_user_id]['group_title'] = message.text
-    #     JsonHandler(json_name).write_json_data(json)
-    #
-    #     bot.delete_message(
-    #         chat_id=message.from_user.id,
-    #         message_id=message.id
-    #     )
-    #
-    #     bot.edit_message_media(
-    #         chat_id=message.from_user.id,
-    #         message_id=json[str_user_id]['message_for_update'],
-    #         reply_markup=MarkupCreator().add_group_description_markup(),
-    #         media=InputMediaPhoto(
-    #             media=open('static/images/media_message_picture.png', 'rb'),
-    #             caption=TemplateCreator().add_group_description(
-    #                 json=json,
-    #                 str_user_id=str_user_id
-    #             ),
-    #             parse_mode='HTML'
-    #         )
-    #     )
-    #
-    # elif json[str_user_id]['set_group_description']:
-    #     json[str_user_id]['set_group_description'] = False
-    #     json[str_user_id]['group_description'] = message.text
-    #     JsonHandler(json_name).write_json_data(json)
-    #
-    #     bot.delete_message(
-    #         chat_id=message.from_user.id,
-    #         message_id=message.id
-    #     )
-    #
-    #     now = datetime.now()
-    #     bot.edit_message_media(
-    #         chat_id=message.from_user.id,
-    #         message_id=json[str_user_id]['message_for_update'],
-    #         reply_markup=calendar.create_calendar(
-    #             name=calendar_callback.prefix,
-    #             year=now.year,
-    #             month=now.month
-    #         ),
-    #         media=InputMediaPhoto(
-    #             media=open('static/images/media_message_picture.png', 'rb'),
-    #             caption=TemplateCreator().add_group_watering_last_time(
-    #                 json=json,
-    #                 str_user_id=str_user_id
-    #             ),
-    #             parse_mode='HTML'
-    #         )
-    #     )
-    #
-    if json[str_user_id]['set_flower_title']:
+    if json[str_user_id]['set_group_title']:
+        json[str_user_id]['group_title'] = message.text
+        JsonHandler(json_name).write_json_data(json)
+        JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+        bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=message.id
+        )
+
+        sql_alchemy.change_group_title(
+            group_id=json[str_user_id]['group_id'],
+            new_title=json[str_user_id]['group_title']
+        )
+
+        # TODO можно тоже вынести в отдельный метод, ибо есть повторение ниже
+        group = sql_alchemy.get_group(json[str_user_id]['group_id'])
+
+        bot.edit_message_media(
+            chat_id=message.from_user.id,
+            message_id=json[str_user_id]['message_for_update'],
+            reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                group_id=json[str_user_id]['group_id']
+            ),
+            media=InputMediaPhoto(
+                media=open('static/images/media_message_picture.png', 'rb'),
+                caption=TemplateCreator().check_group_choose_changing_point(
+                    group_description=DatabaseParser.parse_group(
+                        group=group
+                    )
+                ),
+                parse_mode='HTML'
+            )
+        )
+
+    elif json[str_user_id]['set_group_description']:
+        json[str_user_id]['group_description'] = message.text
+        JsonHandler(json_name).write_json_data(json)
+        JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+        bot.delete_message(
+            chat_id=message.from_user.id,
+            message_id=message.id
+        )
+
+        sql_alchemy.change_group_description(
+            group_id=json[str_user_id]['group_id'],
+            new_description=json[str_user_id]['group_description']
+        )
+
+        # TODO можно тоже вынести в отдельный метод, ибо есть повторение ниже
+        group = sql_alchemy.get_group(json[str_user_id]['group_id'])
+
+        bot.edit_message_media(
+            chat_id=message.from_user.id,
+            message_id=json[str_user_id]['message_for_update'],
+            reply_markup=MarkupCreator().check_group_choose_changing_point_markup(
+                group_id=json[str_user_id]['group_id']
+            ),
+            media=InputMediaPhoto(
+                media=open('static/images/media_message_picture.png', 'rb'),
+                caption=TemplateCreator().check_group_choose_changing_point(
+                    group_description=DatabaseParser.parse_group(
+                        group=group
+                    )
+                ),
+                parse_mode='HTML'
+            )
+        )
+
+    elif json[str_user_id]['set_flower_title']:
         json[str_user_id]['flower_title'] = message.text
         JsonHandler(json_name).write_json_data(json)
         JsonHandler(json_name).reset_appropriate_messages(str_user_id)
@@ -1738,12 +2103,12 @@ def change_item_text_messages_handler(message):
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().check_flower_action_markup(
+            reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
                 flower_id=json[str_user_id]['flower_id']
             ),
             media=InputMediaPhoto(
                 media=pickle.loads(flower.photo),
-                caption=TemplateCreator().check_flower_action(
+                caption=TemplateCreator().check_flower_choose_changing_point(
                     flower_description=DatabaseParser.parse_flower(
                         sql_alchemy_adapter=sql_alchemy,
                         flower=flower
@@ -1774,12 +2139,12 @@ def change_item_text_messages_handler(message):
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().check_flower_action_markup(
+            reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
                 flower_id=json[str_user_id]['flower_id']
             ),
             media=InputMediaPhoto(
                 media=pickle.loads(flower.photo),
-                caption=TemplateCreator().check_flower_action(
+                caption=TemplateCreator().check_flower_choose_changing_point(
                     flower_description=DatabaseParser.parse_flower(
                         sql_alchemy_adapter=sql_alchemy,
                         flower=flower
@@ -1831,12 +2196,12 @@ def change_item_photo_messages_handler(message):
         bot.edit_message_media(
             chat_id=message.from_user.id,
             message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().check_flower_action_markup(
+            reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
                 flower_id=json[str_user_id]['flower_id']
             ),
             media=InputMediaPhoto(
                 media=pickle.loads(flower.photo),
-                caption=TemplateCreator().check_flower_action(
+                caption=TemplateCreator().check_flower_choose_changing_point(
                     flower_description=DatabaseParser.parse_flower(
                         sql_alchemy_adapter=sql_alchemy,
                         flower=flower

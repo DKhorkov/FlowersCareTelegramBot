@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timedelta
 from typing import Type
 
 from sqlalchemy import create_engine
@@ -71,7 +72,7 @@ class SQLAlchemyAdapter:
         Ниже идет логика взаимодействия с группами (сценариями полива).
     """
 
-    def add_flower_group(self, str_user_id: str, json_data: dict) -> None:
+    def add_group(self, str_user_id: str, json_data: dict) -> None:
         try:
             user_id_from_user_table = self.get_user_id(int(str_user_id))
 
@@ -79,7 +80,7 @@ class SQLAlchemyAdapter:
                 user_id=user_id_from_user_table,
                 title=json_data[str_user_id]['group_title'],
                 description=json_data[str_user_id]['group_description'],
-                last_time_watering_date=json_data[str_user_id]['last_time_watering_date'],
+                last_watering_date=json_data[str_user_id]['last_watering_date'],
                 watering_interval=json_data[str_user_id]['watering_interval'],
                 next_watering_date=json_data[str_user_id]['next_watering_date']
             )
@@ -90,7 +91,7 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def get_user_flowers_groups(self, user_id: int) -> list[Type[FlowersGroup]] | list:
+    def get_user_groups(self, user_id: int) -> list[Type[FlowersGroup]] | list:
         try:
             user_id_from_user_table = self.get_user_id(user_id)
             user_flowers_groups = self._session.query(FlowersGroup).filter(
@@ -100,23 +101,76 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def get_flowers_group(self, flowers_group_id: int) -> Type[FlowersGroup]:
+    def get_group(self, group_id: int) -> Type[FlowersGroup]:
         try:
-            flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == flowers_group_id).one()
+            flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
             return flowers_group
 
         except Exception as e:
             self._logger.info(e)
 
-    def delete_flowers_group(self, flowers_group_id: int) -> None:
+    def delete_group(self, group_id: int) -> None:
         try:
-            flowers_group_to_delete = self._session.query(FlowersGroup).get(flowers_group_id)
+            flowers_group_to_delete = self._session.query(FlowersGroup).get(group_id)
             self._session.delete(flowers_group_to_delete)
 
-            flowers_to_delete = self._session.query(Flower).filter(Flower.group_id == flowers_group_id).all()
+            flowers_to_delete = self._session.query(Flower).filter(Flower.group_id == group_id).all()
             for flower in flowers_to_delete:
                 self._session.delete(flower)
 
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_group_title(self, group_id: int, new_title: str) -> None:
+        try:
+            self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).update(
+                {FlowersGroup.title: new_title}
+            )
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_group_description(self, group_id: int, new_description: str) -> None:
+        try:
+            self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).update(
+                {FlowersGroup.description: new_description}
+            )
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_group_last_watering_date(self, group_id: int, new_last_watering_date: datetime) -> None:
+        try:
+            group_to_change = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
+            new_next_watering_date = new_last_watering_date + timedelta(days=group_to_change.watering_interval)
+
+            self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).update(
+                {FlowersGroup.last_watering_date: new_last_watering_date,
+                 FlowersGroup.next_watering_date: str(new_next_watering_date)
+                 }
+            )
+            self._session.commit()
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_group_watering_interval(self, group_id: int, new_watering_interval: int) -> None:
+        try:
+            group_to_change = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
+            new_next_watering_date = datetime.strptime(
+                group_to_change.last_watering_date,
+                '%Y-%m-%d %H:%M:%S'
+            ) + timedelta(days=new_watering_interval)
+
+            self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).update(
+                {FlowersGroup.watering_interval: new_watering_interval,
+                 FlowersGroup.next_watering_date: str(new_next_watering_date)
+                 }
+            )
             self._session.commit()
 
         except Exception as e:

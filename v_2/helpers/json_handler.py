@@ -42,7 +42,7 @@ class JsonHandler:
     def process_watering_interval(self, json_data: dict, str_user_id: str, watering_interval: int) -> None:
         json_data[str_user_id]['watering_interval'] = watering_interval
         next_watering_date = datetime.strptime(
-            json_data[str_user_id]['last_time_watering_date'],
+            json_data[str_user_id]['last_watering_date'],
             '%Y-%m-%d %H:%M:%S') + timedelta(days=watering_interval)
         json_data[str_user_id]['next_watering_date'] = str(next_watering_date)
         self.write_json_data(json_data)

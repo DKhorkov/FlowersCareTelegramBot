@@ -23,8 +23,8 @@ class FlowersGroup(Base):
     user_id = Column(Integer(), ForeignKey('user.user_id', ondelete='CASCADE'), nullable=False)
     title = Column(Text(), nullable=False)
     description = Column(Text(), nullable=False)
-    last_time_watering_date = Column(Text(), nullable=False)
-    watering_interval = Column(Text(), nullable=False)
+    last_watering_date = Column(Text(), nullable=False)
+    watering_interval = Column(Integer(), nullable=False)
     next_watering_date = Column(Text(), nullable=False)
 
 

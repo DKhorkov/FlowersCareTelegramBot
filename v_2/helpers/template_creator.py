@@ -30,7 +30,7 @@ class AddGroupTemplateCreator(BaseTemplateCreator):
     def add_group_watering_interval(json: dict, str_user_id: str) -> str:
         template = f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
                    f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
-                   f"<b>Дата последнего полива:</b> {json[str_user_id]['last_time_watering_date'].split(' ')[0]}\n\n" \
+                   f"<b>Дата последнего полива:</b> {json[str_user_id]['last_watering_date'].split(' ')[0]}\n\n" \
                    f"Пожалуйста, выберите интервал полива для создаваемого сценария:"
         return template
 
@@ -39,7 +39,7 @@ class AddGroupTemplateCreator(BaseTemplateCreator):
                    f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
                    f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
                    f"<b>Дата последнего полива:</b> " \
-                   f"{self.__transform_to_russian_date(json[str_user_id]['last_time_watering_date'])}\n" \
+                   f"{self.__transform_to_russian_date(json[str_user_id]['last_watering_date'])}\n" \
                    f"<b>Интервал полива:</b> {json[str_user_id]['watering_interval']}\n" \
                    f"<b>Дата следующего полива:</b> " \
                    f"{self.__transform_to_russian_date(json[str_user_id]['next_watering_date'])}\n\n"
@@ -155,6 +155,28 @@ class CheckGroupTemplateCreator(BaseTemplateCreator):
     @staticmethod
     def check_group_confirm_delete(group_description: str) -> str:
         return f'{group_description}\n\n Вы действительно хотите удалить данный сценарий полива?'
+
+    @staticmethod
+    def check_group_choose_changing_point(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, выберите пункт для редактирования данного сценария полива:'
+
+    @staticmethod
+    def check_group_change_title(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, отправьте боту сообщение с новым названием для данного сценария ' \
+               f'полива:'
+
+    @staticmethod
+    def check_group_change_description(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, отправьте боту сообщение с новым описанием для данного сценария ' \
+               f'полива:'
+
+    @staticmethod
+    def check_group_change_watering_interval(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, выберите новый интервал полива для данного сценария:'
+
+    @staticmethod
+    def check_group_change_last_watering_date(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, выберите обновленную дату последнего полива для данного сценария:'
 
 
 class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator, CheckFlowerTemplateCreator,
