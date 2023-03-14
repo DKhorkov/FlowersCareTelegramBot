@@ -178,6 +178,10 @@ class CheckGroupTemplateCreator(BaseTemplateCreator):
     def check_group_change_last_watering_date(group_description: str) -> str:
         return f'{group_description}\n\n Пожалуйста, выберите обновленную дату последнего полива для данного сценария:'
 
+    @staticmethod
+    def check_group_see_flowers(group_description: str) -> str:
+        return f'{group_description}\n\n Пожалуйста, выберите растение данного сценария полива для просмотра:'
+
 
 class TemplateCreator(AddGroupTemplateCreator, AddFlowerTemplateCreator, CheckFlowerTemplateCreator,
                       CheckGroupTemplateCreator):

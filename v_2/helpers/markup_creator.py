@@ -305,6 +305,11 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
     @staticmethod
     def check_group_action_markup(group_id: int) -> InlineKeyboardMarkup:
         check_group_action_markup = InlineKeyboardMarkup(row_width=1)
+        see_flowers_button = InlineKeyboardButton(
+            text='Просмотр растений в данном сценарии',
+            callback_data=f'check_group_action see_flowers {group_id}'
+        )
+
         change_button = InlineKeyboardButton(
             text='Редактировать сценарий полива',
             callback_data=f'check_group_action change {group_id}'
@@ -317,7 +322,7 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_group_action BACK {group_id}')
         menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_group_action MENU {group_id}')
-        check_group_action_markup.add(change_button, delete_button, back_button, menu_button)
+        check_group_action_markup.add(see_flowers_button, change_button, delete_button, back_button, menu_button)
         return check_group_action_markup
 
     @staticmethod
@@ -428,6 +433,22 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
 
         check_group_change_watering_interval_markup.add(back_button, menu_button)
         return check_group_change_watering_interval_markup
+
+    @staticmethod
+    def check_group_see_flowers_markup(group_id: int, group_flowers: list[Type[Flower]]) -> InlineKeyboardMarkup:
+        check_flower_see_flowers_markup = InlineKeyboardMarkup(row_width=1)
+        for flower in group_flowers:
+            group_flower_button = InlineKeyboardButton(
+                text=f'{flower.title}',
+                callback_data=f'check_flower_see_flowers {flower.id} {group_id}'
+            )
+
+            check_flower_see_flowers_markup.add(group_flower_button)
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_flower_see_flowers BACK {group_id}')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_flower_see_flowers MENU {group_id}')
+        check_flower_see_flowers_markup.add(back_button, menu_button)
+        return check_flower_see_flowers_markup
 
 
 class MarkupCreator(AddGroupMarkupCreator, AddFlowerMarkupCreator, CheckFlowerMarkupCreator, CheckGroupMarkupCreator):

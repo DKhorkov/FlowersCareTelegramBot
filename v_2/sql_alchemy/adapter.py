@@ -109,6 +109,14 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
+    def get_group_flowers(self, group_id: int) -> list[Type[Flower]]:
+        try:
+            group_flowers = self._session.query(Flower).filter(Flower.group_id == group_id).all()
+            return group_flowers
+
+        except Exception as e:
+            self._logger.info(e)
+
     def delete_group(self, group_id: int) -> None:
         try:
             flowers_group_to_delete = self._session.query(FlowersGroup).get(group_id)
@@ -203,6 +211,14 @@ class SQLAlchemyAdapter:
             user_id_from_user_table = self.get_user_id(user_id)
             user_flowers = self._session.query(Flower).filter(Flower.user_id == user_id_from_user_table).all()
             return user_flowers
+
+        except Exception as e:
+            self._logger.info(e)
+
+    def get_number_of_flowers_in_group(self, group_id: int) -> int:
+        try:
+            number_of_flowers_in_group = self._session.query(Flower).filter(Flower.group_id == group_id).count()
+            return number_of_flowers_in_group
 
         except Exception as e:
             self._logger.info(e)

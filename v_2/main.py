@@ -42,8 +42,8 @@ def start(message):
         sql_alchemy.add_user(
             user_id=message.from_user.id,
             username=message.from_user.username,
-            first_name=message.from_user.first_name,
-            last_name=message.from_user.last_name,
+            first_name=message.from_user.first_name if message.from_user.first_name is not None else 'no name',
+            last_name=message.from_user.last_name if message.from_user.last_name is not None else 'no last name',
             is_bot=message.from_user.is_bot
         )
         #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
@@ -1317,6 +1317,7 @@ def check_group_selection_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_action(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1381,6 +1382,7 @@ def check_group_action_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1399,7 +1401,99 @@ def check_group_action_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_confirm_delete(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif 'see_flowers':
+                group_flowers = sql_alchemy.get_group_flowers(group_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_see_flowers_markup(
+                        group_flowers=group_flowers,
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_see_flowers(
+                            group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_see_flowers'))
+def check_group_see_flowers_call_query(call):
+    try:
+        if call.message:
+            str_user_id = str(call.from_user.id)
+            json = JsonHandler(json_name).read_json_file()
+
+            group_id = int(call.data.split(' ')[-1])
+            group = sql_alchemy.get_group(group_id)
+
+            if 'BACK' in call.data:
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_group_action_markup(
+                        group_id=group_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().check_group_action(
+                            group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
+                                group=group
+                            )
+                        ),
+                        parse_mode='HTML'
+                    )
+                )
+
+            elif "MENU" in call.data:
+                JsonHandler(json_name).reset_appropriate_messages(str_user_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().base_markup(),
+                    media=InputMediaPhoto(
+                        media=open('static/images/media_message_picture.png', 'rb'),
+                        caption=TemplateCreator().base_template(),
+                        parse_mode='HTML'
+                    )
+                )
+
+            else:
+                flower_id = int(call.data.split(' ')[-2])
+                flower = sql_alchemy.get_flower(flower_id)
+
+                bot.edit_message_media(
+                    chat_id=call.from_user.id,
+                    message_id=json[str_user_id]['message_for_update'],
+                    reply_markup=MarkupCreator().check_flower_action_markup(
+                        flower_id=flower_id
+                    ),
+                    media=InputMediaPhoto(
+                        media=pickle.loads(flower.photo),
+                        caption=TemplateCreator().check_flower_action(
+                            flower_description=DatabaseParser.parse_flower(
+                                sql_alchemy_adapter=sql_alchemy,
+                                flower=flower
                             )
                         ),
                         parse_mode='HTML'
@@ -1431,6 +1525,7 @@ def check_group_confirm_delete_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_action(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1499,6 +1594,7 @@ def check_group_choose_changing_point_call_query(call):
                             media=open('static/images/media_message_picture.png', 'rb'),
                             caption=TemplateCreator().check_group_action(
                                 group_description=DatabaseParser.parse_group(
+                                    sql_alchemy_adapter=sql_alchemy,
                                     group=group
                                 )
                             ),
@@ -1536,6 +1632,7 @@ def check_group_choose_changing_point_call_query(call):
                             media=open('static/images/media_message_picture.png', 'rb'),
                             caption=TemplateCreator().check_group_change_title(
                                 group_description=DatabaseParser.parse_group(
+                                    sql_alchemy_adapter=sql_alchemy,
                                     group=group
                                 )
                             ),
@@ -1559,6 +1656,7 @@ def check_group_choose_changing_point_call_query(call):
                             media=open('static/images/media_message_picture.png', 'rb'),
                             caption=TemplateCreator().check_group_change_description(
                                 group_description=DatabaseParser.parse_group(
+                                    sql_alchemy_adapter=sql_alchemy,
                                     group=group
                                 )
                             ),
@@ -1583,6 +1681,7 @@ def check_group_choose_changing_point_call_query(call):
                             media=open('static/images/media_message_picture.png', 'rb'),
                             caption=TemplateCreator().check_group_change_last_watering_date(
                                 group_description=DatabaseParser.parse_group(
+                                    sql_alchemy_adapter=sql_alchemy,
                                     group=group
                                 )
                             ),
@@ -1601,6 +1700,7 @@ def check_group_choose_changing_point_call_query(call):
                             media=open('static/images/media_message_picture.png', 'rb'),
                             caption=TemplateCreator().check_group_change_watering_interval(
                                 group_description=DatabaseParser.parse_group(
+                                    sql_alchemy_adapter=sql_alchemy,
                                     group=group
                                 )
                             ),
@@ -1633,6 +1733,7 @@ def check_group_change_watering_interval_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1672,6 +1773,7 @@ def check_group_change_watering_interval_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1722,6 +1824,7 @@ def check_group_change_last_watering_date_call_query(call: CallbackQuery):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1754,6 +1857,7 @@ def check_group_change_last_watering_date_call_query(call: CallbackQuery):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -1787,6 +1891,7 @@ def check_group_change_call_query(call):
                         media=open('static/images/media_message_picture.png', 'rb'),
                         caption=TemplateCreator().check_group_choose_changing_point(
                             group_description=DatabaseParser.parse_group(
+                                sql_alchemy_adapter=sql_alchemy,
                                 group=group
                             )
                         ),
@@ -2040,6 +2145,7 @@ def change_item_text_messages_handler(message):
                 media=open('static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_choose_changing_point(
                     group_description=DatabaseParser.parse_group(
+                        sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
                 ),
@@ -2075,6 +2181,7 @@ def change_item_text_messages_handler(message):
                 media=open('static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_choose_changing_point(
                     group_description=DatabaseParser.parse_group(
+                        sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
                 ),
