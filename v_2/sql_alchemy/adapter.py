@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from typing import Type
+from telebot.types import Message
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -42,7 +43,22 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def add_user(self, user_id: int, username: str, first_name: str, last_name: str, is_bot: bool) ->  None:
+    def add_user(self, message: Message):
+        user_id = message.from_user.id,
+        username = message.from_user.username,
+        first_name = message.from_user.first_name if message.from_user.first_name is not None else 'no name',
+        last_name = message.from_user.last_name if message.from_user.last_name is not None else 'no last name',
+        is_bot = message.from_user.is_bot
+
+        return self.__add_user(
+            user_id=user_id[0],
+            username=username[0],
+            first_name=first_name[0],
+            last_name=last_name[0],
+            is_bot=is_bot
+        )
+
+    def __add_user(self, user_id: int, username: str, first_name: str, last_name: str, is_bot: bool) ->  None:
         try:
             new_user = User(
                 user_id=user_id,

@@ -2,14 +2,13 @@ import pickle
 
 from telebot import TeleBot
 from telebot.types import InputMediaPhoto
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from telebot_calendar import CallbackData, RUSSIAN_LANGUAGE
 from telebot.types import CallbackQuery
-from ast import literal_eval
 from threading import Thread
 
-from configs import TOKEN
+from configs import TOKEN, json_name
 from helpers.logging_system import get_logger
 from helpers.customized_calendar import CustomizedCalendar
 from helpers.json_handler import JsonHandler
@@ -17,17 +16,20 @@ from helpers.template_creator import TemplateCreator
 from helpers.markup_creator import MarkupCreator
 from helpers.photo_processor import PhotoProcessor
 from helpers.database_parser import DatabaseParser
+from helpers.message_handler import MessageHandler
 from sql_alchemy.adapter import SQLAlchemyAdapter
 
 
-logger = get_logger('bot_logs')
 bot = TeleBot(token=TOKEN)
-json_name = 'users_data_json'
+logger = get_logger('bot_logs')
+sql_alchemy = SQLAlchemyAdapter(logger=logger)
+sql_alchemy.create_tables()
+
+
 calendar = CustomizedCalendar(language=RUSSIAN_LANGUAGE)
 create_group_calendar_callback = CallbackData("create_group_calendar", "action", "year", "month", "day")
 change_group_calendar_callback = CallbackData("change_group_calendar", "action", "year", "month", "day")
-sql_alchemy = SQLAlchemyAdapter(logger=logger)
-sql_alchemy.create_tables()
+
 
 
 """
@@ -39,39 +41,12 @@ sql_alchemy.create_tables()
 def start(message):
 
     if sql_alchemy.check_if_user_already_registered(message.from_user.id):
-        sql_alchemy.add_user(
-            user_id=message.from_user.id,
-            username=message.from_user.username,
-            first_name=message.from_user.first_name if message.from_user.first_name is not None else 'no name',
-            last_name=message.from_user.last_name if message.from_user.last_name is not None else 'no last name',
-            is_bot=message.from_user.is_bot
-        )
+        sql_alchemy.add_user(message)
         #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
 
-    str_user_id = str(message.from_user.id)
-    json_data = JsonHandler(json_name).read_json_file()
+    message_for_update = MessageHandler.send_start_message(bot=bot, message=message)
+    JsonHandler(json_name).prepare_json(str_user_id=str(message.from_user.id), message_for_update=message_for_update)
 
-    message_to_update = bot.send_media_group(
-        chat_id=message.from_user.id,
-        media=[
-            InputMediaPhoto(
-            media=open('static/images/media_message_picture.png', 'rb'),
-            caption=TemplateCreator().base_template(),
-            parse_mode='HTML'
-        )
-        ]
-    )[0].id
-
-    bot.edit_message_reply_markup(
-        chat_id=message.from_user.id,
-        message_id=message_to_update,
-        reply_markup=MarkupCreator().base_markup()
-    )
-
-    json_data[str_user_id] = {}
-    json_data[str_user_id]['message_for_update'] = message_to_update
-    JsonHandler(json_name).write_json_data(json_data)
-    JsonHandler(json_name).reset_appropriate_messages(str_user_id)
 
 
 """
@@ -88,16 +63,7 @@ def add_group_call_query(call):
             json[str_user_id]['set_group_title'] = True
             JsonHandler(json_name).write_json_data(json)
 
-            bot.edit_message_media(
-                chat_id=call.from_user.id,
-                message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().add_group_title_markup(),
-                media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
-                    caption=TemplateCreator().add_group_title(),
-                    parse_mode='HTML'
-                )
-            )
+            MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -114,16 +80,7 @@ def add_group_title_call_query(call):
                 json[str_user_id]['set_group_title'] = False
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -141,30 +98,11 @@ def add_group_description_call_query(call):
                 json[str_user_id]['set_group_description'] = False
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -192,51 +130,17 @@ def add_group_last_watering_date_call_query(call: CallbackQuery):
                 json[str_user_id]['last_watering_date'] = str(last_watering_date)
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_watering_interval_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_watering_interval(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_watering_interval_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif action == "MENU":
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif action == "BACK":
                 json[str_user_id]['set_group_description'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_description_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_description(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_description_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -250,39 +154,11 @@ def add_group_watering_interval_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                now = datetime.now()
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=calendar.create_calendar(
-                        name=create_group_calendar_callback.prefix,
-                        year=now.year,
-                        month=now.month
-                    ),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_watering_last_time(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 watering_interval = int(call.data.split(' ')[-1])
@@ -297,19 +173,7 @@ def add_group_watering_interval_call_query(call):
                     json_data=JsonHandler(json_name).read_json_file()
                 )
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_created_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().group_created(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_created_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -326,30 +190,11 @@ def add_group_created_call_query(call):
                 json[str_user_id]['set_flower_title'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -359,19 +204,8 @@ def add_group_created_call_query(call):
 def back_to_menu_call_query(call):
     try:
         if call.message:
-            str_user_id = str(call.from_user.id)
             json = JsonHandler(json_name).read_json_file()
-
-            bot.edit_message_media(
-                chat_id=call.from_user.id,
-                message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().base_markup(),
-                media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
-                    caption=TemplateCreator().base_template(),
-                    parse_mode='HTML'
-                )
-            )
+            MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -391,16 +225,7 @@ def add_flower_call_query(call):
             json[str_user_id]['set_flower_title'] = True
             JsonHandler(json_name).write_json_data(json)
 
-            bot.edit_message_media(
-                chat_id=call.from_user.id,
-                message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().add_flower_title_markup(),
-                media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
-                    caption=TemplateCreator().add_flower_title(),
-                    parse_mode='HTML'
-                )
-            )
+            MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -417,16 +242,7 @@ def add_flower_title_call_query(call):
                 json[str_user_id]['set_flower_title'] = False
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -444,30 +260,11 @@ def add_flower_description_call_query(call):
                 json[str_user_id]['set_flower_description'] = False
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -484,48 +281,17 @@ def add_flower_group_call_query(call):
                 json[str_user_id]['set_flower_description'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_description_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_description(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_description_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "add_group" in call.data:
                 json[str_user_id]['set_group_title'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 flower_group_title = call.data.split(" ")[-2]
@@ -534,19 +300,7 @@ def add_flower_group_call_query(call):
                 json[str_user_id]['flower_group_id'] = flower_group_id
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_ask_photo_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_ask_photo(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -561,55 +315,22 @@ def add_flower_photo_call_query(call):
 
             if 'BACK' in call.data:
                 flowers_groups = sql_alchemy.get_user_groups(call.from_user.id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_group_markup(
-                        flowers_groups=flowers_groups
-                    ),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_group(
-                            json=json,
-                            str_user_id=str_user_id,
-                            empty_groups=True if len(flowers_groups) > 0 else False
-                        ),
-                        parse_mode='HTML'
-                    )
+                MessageHandler.send_add_flower_group_message(
+                    bot=bot,
+                    user_id=call.from_user.id,
+                    json=json,
+                    flowers_groups=flowers_groups
                 )
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'yes' in call.data:
                 json[str_user_id]['set_flower_photo'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_photo_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_photo(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_photo_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'no' in call.data:
                 with open('static/images/base_flower_photo.jpg', 'rb') as file:
@@ -621,18 +342,11 @@ def add_flower_photo_call_query(call):
                     bytes_photo=pickle.dumps(photo)
                 )
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_created_markup(),
-                    media=InputMediaPhoto(
-                        media=photo,
-                        caption=TemplateCreator().flower_created(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
+                MessageHandler.send_add_flower_created_message(
+                    bot=bot,
+                    user_id=call.from_user.id,
+                    json=json,
+                    bytes_photo=pickle.dumps(photo)
                 )
 
     except Exception as e:
@@ -650,33 +364,11 @@ def add_flower_photo_call_query(call):
                 json[str_user_id]['set_flower_photo'] = False
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_ask_photo_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_ask_photo(
-                            json=json,
-                            str_user_id=str_user_id
-                        ),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -693,30 +385,11 @@ def add_flower_created_call_query(call):
                 json[str_user_id]['set_flower_title'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -763,31 +436,13 @@ def check_flower_selection_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'add_flower' in call.data:
                 json[str_user_id]['set_flower_title'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_flower_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_flower_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 flower_id = int(call.data.split(' ')[-1])
@@ -846,17 +501,7 @@ def check_flower_action_call_query(call):
             # TODO наверное, вынести куда-то отдельно в метод, ибо по кд вызывается в редактировании цветка
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'change' in call.data:
                 bot.edit_message_media(
@@ -931,17 +576,7 @@ def check_flower_confirm_delete_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'YES' in call.data:
                 sql_alchemy.delete_flower(flower_id)
@@ -999,17 +634,7 @@ def check_flower_choose_changing_point_call_query(call):
 
                 case "MENU":
                     JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                    bot.edit_message_media(
-                        chat_id=call.from_user.id,
-                        message_id=json[str_user_id]['message_for_update'],
-                        reply_markup=MarkupCreator().base_markup(),
-                        media=InputMediaPhoto(
-                            media=open('static/images/media_message_picture.png', 'rb'),
-                            caption=TemplateCreator().base_template(),
-                            parse_mode='HTML'
-                        )
-                    )
+                    MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
                 case "title":
                     json[str_user_id]['set_flower_title'] = True
@@ -1144,17 +769,7 @@ def check_flower_change_group_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 group_id = call.data.split(' ')[-1]
@@ -1220,17 +835,7 @@ def check_flower_change_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -1277,31 +882,13 @@ def check_group_selection_call_query(call):
             json = JsonHandler(json_name).read_json_file()
 
             if 'BACK' in call.data:
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'add_group' in call.data:
                 json[str_user_id]['set_group_title'] = True
                 JsonHandler(json_name).write_json_data(json)
 
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().add_group_title_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().add_group_title(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 group_id = int(call.data.split(' ')[-1])
@@ -1359,17 +946,7 @@ def check_group_action_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'change' in call.data:
                 bot.edit_message_media(
@@ -1466,17 +1043,7 @@ def check_group_see_flowers_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 flower_id = int(call.data.split(' ')[-2])
@@ -1535,17 +1102,7 @@ def check_group_confirm_delete_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'YES' in call.data:
                 sql_alchemy.delete_group(group_id)
@@ -1604,17 +1161,7 @@ def check_group_choose_changing_point_call_query(call):
 
                 case "MENU":
                     JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                    bot.edit_message_media(
-                        chat_id=call.from_user.id,
-                        message_id=json[str_user_id]['message_for_update'],
-                        reply_markup=MarkupCreator().base_markup(),
-                        media=InputMediaPhoto(
-                            media=open('static/images/media_message_picture.png', 'rb'),
-                            caption=TemplateCreator().base_template(),
-                            parse_mode='HTML'
-                        )
-                    )
+                    MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
                 case "title":
                     json[str_user_id]['set_group_title'] = True
@@ -1743,17 +1290,7 @@ def check_group_change_watering_interval_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             else:
                 new_watering_interval = int(call.data.split(' ')[-2])
@@ -1834,17 +1371,7 @@ def check_group_change_last_watering_date_call_query(call: CallbackQuery):
 
             elif action == "MENU":
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif action == "BACK":
                 bot.edit_message_media(
@@ -1901,17 +1428,7 @@ def check_group_change_call_query(call):
 
             elif "MENU" in call.data:
                 JsonHandler(json_name).reset_appropriate_messages(str_user_id)
-
-                bot.edit_message_media(
-                    chat_id=call.from_user.id,
-                    message_id=json[str_user_id]['message_for_update'],
-                    reply_markup=MarkupCreator().base_markup(),
-                    media=InputMediaPhoto(
-                        media=open('static/images/media_message_picture.png', 'rb'),
-                        caption=TemplateCreator().base_template(),
-                        parse_mode='HTML'
-                    )
-                )
+                MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
 
     except Exception as e:
         logger.error(e)
@@ -1947,48 +1464,20 @@ def create_item_text_messages_handler(message):
             message_id=message.id
         )
 
-        bot.edit_message_media(
-            chat_id=message.from_user.id,
-            message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().add_group_description_markup(),
-            media=InputMediaPhoto(
-                media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_group_description(
-                    json=json,
-                    str_user_id=str_user_id
-                ),
-                parse_mode='HTML'
-            )
-        )
+        MessageHandler.send_add_group_description_message(bot=bot, user_id=message.from_user.id, json=json)
 
     elif json[str_user_id]['set_group_description']:
         json[str_user_id]['set_group_description'] = False
         json[str_user_id]['group_description'] = message.text
         JsonHandler(json_name).write_json_data(json)
 
+        # TODO вынести в метод базового Message_Handler
         bot.delete_message(
             chat_id=message.from_user.id,
             message_id=message.id
         )
 
-        now = datetime.now()
-        bot.edit_message_media(
-            chat_id=message.from_user.id,
-            message_id=json[str_user_id]['message_for_update'],
-            reply_markup=calendar.create_calendar(
-                name=create_group_calendar_callback.prefix,
-                year=now.year,
-                month=now.month
-            ),
-            media=InputMediaPhoto(
-                media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_group_watering_last_time(
-                    json=json,
-                    str_user_id=str_user_id
-                ),
-                parse_mode='HTML'
-            )
-        )
+        MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=message.from_user.id, json=json)
 
     elif json[str_user_id]['set_flower_title']:
         json[str_user_id]['set_flower_title'] = False
@@ -2001,19 +1490,7 @@ def create_item_text_messages_handler(message):
             message_id=message.id
         )
 
-        bot.edit_message_media(
-            chat_id=message.from_user.id,
-            message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().add_flower_description_markup(),
-            media=InputMediaPhoto(
-                media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_flower_description(
-                    json=json,
-                    str_user_id=str_user_id
-                ),
-                parse_mode='HTML'
-            )
-        )
+        MessageHandler.send_add_flower_description_message(bot=bot, user_id=message.from_user.id, json=json)
 
     elif json[str_user_id]['set_flower_description']:
         json[str_user_id]['set_flower_description'] = False
@@ -2026,21 +1503,11 @@ def create_item_text_messages_handler(message):
         )
 
         flowers_groups = sql_alchemy.get_user_groups(message.from_user.id)
-        bot.edit_message_media(
-            chat_id=message.from_user.id,
-            message_id=json[str_user_id]['message_for_update'],
-                reply_markup=MarkupCreator().add_flower_group_markup(
-                flowers_groups=flowers_groups
-            ),
-            media=InputMediaPhoto(
-                media=open('static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().add_flower_group(
-                    json=json,
-                    str_user_id=str_user_id,
-                    empty_groups=True if len(flowers_groups) > 0 else False
-                ),
-                parse_mode='HTML'
-            )
+        MessageHandler.send_add_flower_group_message(
+            bot=bot,
+            user_id=message.from_user.id,
+            json=json,
+            flowers_groups=flowers_groups
         )
 
     else:
@@ -2082,18 +1549,11 @@ def create_item_photo_messages_handler(message):
             bytes_photo=bytes_photo
         )
 
-        bot.edit_message_media(
-            chat_id=message.from_user.id,
-            message_id=json[str_user_id]['message_for_update'],
-            reply_markup=MarkupCreator().add_flower_created_markup(),
-            media=InputMediaPhoto(
-                media=pickle.loads(bytes_photo),
-                caption=TemplateCreator().flower_created(
-                    json=json,
-                    str_user_id=str_user_id
-                ),
-                parse_mode='HTML'
-            )
+        MessageHandler.send_add_flower_created_message(
+            bot=bot,
+            user_id=message.from_user.id,
+            json=json,
+            bytes_photo=bytes_photo
         )
 
     else:

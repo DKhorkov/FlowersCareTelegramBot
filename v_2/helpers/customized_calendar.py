@@ -215,7 +215,8 @@ class CustomizedCalendar(Calendar):
             )
 
             bot.delete_message(
-                chat_id=call.message.chat.id, message_id=call.message.message_id
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id
             )
 
             return None

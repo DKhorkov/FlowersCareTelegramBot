@@ -29,6 +29,13 @@ class JsonHandler:
         with open(f'JSON_data/{self.json}', 'w') as file:
             file.write(json.dumps(updated_json))
 
+    def prepare_json(self, str_user_id: str, message_for_update: int):
+        json_data = self.read_json_file()
+        json_data[str_user_id] = {}
+        json_data[str_user_id]['message_for_update'] = message_for_update
+        self.write_json_data(json_data)
+        self.reset_appropriate_messages(str_user_id)
+
     def reset_appropriate_messages(self, str_user_id: str) -> None:
         json_data = self.read_json_file()
         json_data[str_user_id]['set_group_title'] = False
