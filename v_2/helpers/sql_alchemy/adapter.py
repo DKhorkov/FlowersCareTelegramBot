@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import InvalidRequestError
 
-from v_2.sql_alchemy.models import Base, User, FlowersGroup, Flower
+from v_2.helpers.sql_alchemy.models import Base, User, FlowersGroup, Flower
 
 
 class SQLAlchemyAdapter:

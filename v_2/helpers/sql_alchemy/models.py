@@ -1,4 +1,3 @@
-from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
 from sqlalchemy.sql.sqltypes import Integer, Text, Boolean, BLOB
 from sqlalchemy.ext.declarative import declarative_base

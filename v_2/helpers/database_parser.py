@@ -1,7 +1,7 @@
 from typing import Type
 
-from v_2.sql_alchemy.models import FlowersGroup, Flower
-from v_2.sql_alchemy.adapter import SQLAlchemyAdapter
+from v_2.helpers.sql_alchemy.models import FlowersGroup, Flower
+from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 
 
 class DatabaseParser:

@@ -145,7 +145,7 @@ class CustomizedCalendar(Calendar):
                     month=int(preview_month.month),
                 ),
                 media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
+                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -164,7 +164,7 @@ class CustomizedCalendar(Calendar):
                     month=int(next_month.month)
                 ),
                 media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
+                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -180,7 +180,7 @@ class CustomizedCalendar(Calendar):
                     year=current.year
                 ),
                 media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
+                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -197,7 +197,7 @@ class CustomizedCalendar(Calendar):
                     month=int(month)
                 ),
                 media=InputMediaPhoto(
-                    media=open('static/images/media_message_picture.png', 'rb'),
+                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )

@@ -9,4 +9,8 @@ v_2/log/
 v_2/helpers/__pycache__/
 v_2/configs.py
 v_2/sqlite_tg_bot_db.db
-v_2/sql_alchemy/__pycache__/
+v_2/helpers/sql_alchemy/__pycache__/
+v_2/helpers/__pycache__/
+v_2/helpers/template_creators/__pycache__/
+v2_/helpers/message_handlers/__pycache__/
+v_2/helpers/markup_creators/__pycache__/

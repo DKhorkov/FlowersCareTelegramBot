@@ -2,16 +2,15 @@ import pickle
 
 from telebot import TeleBot
 from telebot_calendar import CallbackData, RUSSIAN_LANGUAGE
-from telebot.types import CallbackQuery
-from threading import Thread
+from telebot.types import CallbackQuery, Message
 
-from configs import TOKEN, json_name
-from helpers.logging_system import get_logger
-from helpers.customized_calendar import CustomizedCalendar
-from helpers.json_handler import JsonHandler
-from helpers.photo_processor import PhotoProcessor
-from helpers.message_handler import MessageHandler
-from sql_alchemy.adapter import SQLAlchemyAdapter
+from v_2.configs import TOKEN, json_name
+from v_2.helpers.logging_system import get_logger
+from v_2.helpers.customized_calendar import CustomizedCalendar
+from v_2.helpers.json_handler import JsonHandler
+from v_2.helpers.photo_processor import PhotoProcessor
+from v_2.helpers.message_handlers.main_message_handler import MessageHandler
+from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 
 
 bot = TeleBot(token=TOKEN)
@@ -32,7 +31,7 @@ change_group_calendar_callback = CallbackData("change_group_calendar", "action",
 
 
 @bot.message_handler(commands=["start"])
-def start(message):
+def start(message: Message) -> None:
 
     if sql_alchemy.check_if_user_already_registered(message.from_user.id):
         sql_alchemy.add_user(message)
@@ -49,7 +48,7 @@ def start(message):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add_group'))
-def add_group_call_query(call):
+def add_group_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -64,7 +63,7 @@ def add_group_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_title'))
-def add_group_title_call_query(call):
+def add_group_title_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -81,7 +80,7 @@ def add_group_title_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_description'))
-def add_group_description_call_query(call):
+def add_group_description_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -103,7 +102,7 @@ def add_group_description_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(create_group_calendar_callback.prefix))
-def add_group_last_watering_date_call_query(call: CallbackQuery):
+def add_group_last_watering_date_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             json = JsonHandler(json_name).read_json_file()
@@ -141,7 +140,7 @@ def add_group_last_watering_date_call_query(call: CallbackQuery):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_interval'))
-def add_group_watering_interval_call_query(call):
+def add_group_watering_interval_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -174,7 +173,7 @@ def add_group_watering_interval_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_created'))
-def add_group_created_call_query(call):
+def add_group_created_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -195,7 +194,7 @@ def add_group_created_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('MENU'))
-def back_to_menu_call_query(call):
+def back_to_menu_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             MessageHandler.send_back_to_menu_message(
@@ -214,7 +213,7 @@ def back_to_menu_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add_flower'))
-def add_flower_call_query(call):
+def add_flower_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -229,7 +228,7 @@ def add_flower_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_title'))
-def add_flower_title_call_query(call):
+def add_flower_title_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -246,7 +245,7 @@ def add_flower_title_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_description'))
-def add_flower_description_call_query(call):
+def add_flower_description_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -268,7 +267,7 @@ def add_flower_description_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_group'))
-def add_flower_group_call_query(call):
+def add_flower_group_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -304,7 +303,7 @@ def add_flower_group_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_ask_photo'))
-def add_flower_photo_call_query(call):
+def add_flower_photo_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -329,7 +328,7 @@ def add_flower_photo_call_query(call):
                 MessageHandler.send_add_flower_photo_message(bot=bot, user_id=call.from_user.id, json=json)
 
             elif 'no' in call.data:
-                with open('static/images/base_flower_photo.jpg', 'rb') as file:
+                with open('helpers/static/images/base_flower_photo.jpg', 'rb') as file:
                     photo = file.read()
 
                 sql_alchemy.add_flower(
@@ -350,7 +349,7 @@ def add_flower_photo_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_photo'))
-def add_flower_photo_call_query(call):
+def add_flower_photo_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -371,7 +370,7 @@ def add_flower_photo_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_created'))
-def add_flower_created_call_query(call):
+def add_flower_created_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -397,7 +396,7 @@ def add_flower_created_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flowers'))
-def check_flowers_call_query(call):
+def check_flowers_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             MessageHandler.send_check_flower_selection_message(
@@ -412,7 +411,7 @@ def check_flowers_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_selection'))
-def check_flower_selection_call_query(call):
+def check_flower_selection_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -443,7 +442,7 @@ def check_flower_selection_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_action'))
-def check_flower_action_call_query(call):
+def check_flower_action_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -489,7 +488,7 @@ def check_flower_action_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_confirm_delete'))
-def check_flower_confirm_delete_call_query(call):
+def check_flower_confirm_delete_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -526,7 +525,7 @@ def check_flower_confirm_delete_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_choose_changing_point'))
-def check_flower_choose_changing_point_call_query(call):
+def check_flower_choose_changing_point_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -615,7 +614,7 @@ def check_flower_choose_changing_point_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_change_group'))
-def check_flower_change_group_call_query(call):
+def check_flower_change_group_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -659,7 +658,7 @@ def check_flower_change_group_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_flower_change'))
-def check_flower_change_call_query(call):
+def check_flower_change_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -692,7 +691,7 @@ def check_flower_change_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_groups'))
-def check_groups_call_query(call):
+def check_groups_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             MessageHandler.send_check_group_selection_message(
@@ -707,7 +706,7 @@ def check_groups_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_selection'))
-def check_group_selection_call_query(call):
+def check_group_selection_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -738,7 +737,7 @@ def check_group_selection_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_action'))
-def check_group_action_call_query(call):
+def check_group_action_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -796,7 +795,7 @@ def check_group_action_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_see_flowers'))
-def check_group_see_flowers_call_query(call):
+def check_group_see_flowers_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -836,7 +835,7 @@ def check_group_see_flowers_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_confirm_delete'))
-def check_group_confirm_delete_call_query(call):
+def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -871,7 +870,7 @@ def check_group_confirm_delete_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_choose_changing_point'))
-def check_group_choose_changing_point_call_query(call):
+def check_group_choose_changing_point_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -950,7 +949,7 @@ def check_group_choose_changing_point_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_change_watering_interval'))
-def check_group_change_watering_interval_call_query(call):
+def check_group_change_watering_interval_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -995,7 +994,7 @@ def check_group_change_watering_interval_call_query(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(change_group_calendar_callback.prefix))
-def check_group_change_last_watering_date_call_query(call: CallbackQuery):
+def check_group_change_last_watering_date_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             json = JsonHandler(json_name).read_json_file()
@@ -1049,7 +1048,7 @@ def check_group_change_last_watering_date_call_query(call: CallbackQuery):
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('check_group_change'))
-def check_group_change_call_query(call):
+def check_group_change_call_query(call: CallbackQuery) -> None:
     try:
         if call.message:
             str_user_id = str(call.from_user.id)
@@ -1081,7 +1080,7 @@ def check_group_change_call_query(call):
 
 @bot.message_handler(content_types= ['text'], func=lambda message: JsonHandler(
     json_name).check_refactor_status(str(message.from_user.id)) is False)
-def create_item_text_messages_handler(message):
+def create_item_text_messages_handler(message: Message) -> None:
     str_user_id = str(message.from_user.id)
     json = JsonHandler(json_name).read_json_file()
 
@@ -1133,7 +1132,7 @@ def create_item_text_messages_handler(message):
 
 @bot.message_handler(content_types= ['photo'], func=lambda message: JsonHandler(
     json_name).check_refactor_status(str(message.from_user.id)) is False)
-def create_item_photo_messages_handler(message):
+def create_item_photo_messages_handler(message: Message) -> None:
     str_user_id = str(message.from_user.id)
     json = JsonHandler(json_name).read_json_file()
 
@@ -1167,7 +1166,7 @@ def create_item_photo_messages_handler(message):
 
 @bot.message_handler(content_types= ['text'], func=lambda message: JsonHandler(
     json_name).check_refactor_status(str(message.from_user.id)) is True)
-def change_item_text_messages_handler(message):
+def change_item_text_messages_handler(message: Message) -> None:
     str_user_id = str(message.from_user.id)
     json = JsonHandler(json_name).read_json_file()
 
@@ -1269,7 +1268,7 @@ def change_item_text_messages_handler(message):
 
 @bot.message_handler(content_types= ['photo'], func=lambda message: JsonHandler(
     json_name).check_refactor_status(str(message.from_user.id)) is True)
-def change_item_photo_messages_handler(message):
+def change_item_photo_messages_handler(message: Message) -> None:
     str_user_id = str(message.from_user.id)
     json = JsonHandler(json_name).read_json_file()
 
@@ -1304,7 +1303,7 @@ def change_item_photo_messages_handler(message):
 
 @bot.message_handler(content_types= ['document', 'audio', 'video', 'sticker', 'video_note',
                                      'voice', 'location', 'contact'])
-def dump_messages_handler(message):
+def dump_messages_handler(message: Message) -> None:
     MessageHandler.delete_message(bot=bot, message=message)
 
 
