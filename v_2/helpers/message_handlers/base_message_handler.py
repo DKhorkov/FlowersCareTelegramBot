@@ -44,7 +44,6 @@ class BaseMessageHandler:
             )
 
             return message_to_update
-
         except Exception as e:
             logger.error(e)
 
@@ -61,6 +60,5 @@ class BaseMessageHandler:
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)

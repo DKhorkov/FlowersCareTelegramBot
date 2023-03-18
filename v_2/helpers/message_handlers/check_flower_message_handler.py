@@ -36,7 +36,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -61,7 +60,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -86,7 +84,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -111,7 +108,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -136,7 +132,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -163,7 +158,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -188,7 +182,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -213,6 +206,5 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)

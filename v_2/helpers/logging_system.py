@@ -13,5 +13,4 @@ def get_logger(logger_name):
     )
 
     logger = logging.getLogger(f"{logger_name}")
-
     return logger

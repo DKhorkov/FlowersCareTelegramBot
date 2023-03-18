@@ -132,13 +132,11 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
                     text=f'{num} день',
                     callback_data=f'check_group_change_watering_interval {num} {group_id}'
                 )
-
             elif num in [2, 3, 4]:
                 interval_button = InlineKeyboardButton(
                     text=f'{num} дня',
                     callback_data=f'check_group_change_watering_interval {num} {group_id}'
                 )
-
             else:
                 interval_button = InlineKeyboardButton(
                     text=f'{num} дней',

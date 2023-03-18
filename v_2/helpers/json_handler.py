@@ -29,7 +29,8 @@ class JsonHandler:
         with open(f'JSON_data/{self.json}', 'w') as file:
             file.write(json.dumps(updated_json))
 
-    def prepare_json(self, str_user_id: str, message_for_update: int):
+    def prepare_json(self, user_id: int, message_for_update: int):
+        str_user_id = str(user_id)
         json_data = self.read_json_file()
         json_data[str_user_id] = {}
         json_data[str_user_id]['message_for_update'] = message_for_update

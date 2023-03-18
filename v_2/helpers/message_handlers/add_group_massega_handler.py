@@ -33,7 +33,6 @@ class AddGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -53,7 +52,6 @@ class AddGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -73,7 +71,6 @@ class AddGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -99,7 +96,6 @@ class AddGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -119,6 +115,5 @@ class AddGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)

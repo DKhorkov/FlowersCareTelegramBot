@@ -29,7 +29,6 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -49,7 +48,6 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -69,7 +67,6 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -93,7 +90,6 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -113,7 +109,6 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -133,6 +128,5 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)

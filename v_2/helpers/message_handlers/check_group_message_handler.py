@@ -42,7 +42,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -67,7 +66,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -92,7 +90,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -117,7 +114,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -144,7 +140,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -169,7 +164,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -194,7 +188,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -222,7 +215,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)
 
@@ -248,6 +240,5 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                     parse_mode='HTML'
                 )
             )
-
         except Exception as e:
             logger.error(e)

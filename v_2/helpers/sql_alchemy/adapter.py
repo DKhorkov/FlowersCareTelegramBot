@@ -39,7 +39,6 @@ class SQLAlchemyAdapter:
             if user is None:
                 return True
             return False
-
         except Exception as e:
             self._logger.info(e)
 
@@ -72,15 +71,13 @@ class SQLAlchemyAdapter:
             self._session.commit()
 
             self._logger.info(f'User with id={user_id} and username={username} have subscribed!')
-
         except Exception as e:
             self._logger.info(e)
 
     def get_user_id(self, user_id: int) -> int | None:
         try:
-            id = self._session.query(User.id).filter(User.user_id == user_id).one()[0]
-            return id
-
+            user_id = self._session.query(User.id).filter(User.user_id == user_id).one()[0]
+            return user_id
         except Exception as e:
             self._logger.info(e)
 
@@ -103,7 +100,6 @@ class SQLAlchemyAdapter:
 
             self._session.add(new_group)
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -113,7 +109,6 @@ class SQLAlchemyAdapter:
             user_flowers_groups = self._session.query(FlowersGroup).filter(
                 FlowersGroup.user_id == user_id_from_user_table).all()
             return user_flowers_groups
-
         except Exception as e:
             self._logger.info(e)
 
@@ -121,7 +116,6 @@ class SQLAlchemyAdapter:
         try:
             flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
             return flowers_group
-
         except Exception as e:
             self._logger.info(e)
 
@@ -129,7 +123,6 @@ class SQLAlchemyAdapter:
         try:
             group_flowers = self._session.query(Flower).filter(Flower.group_id == group_id).all()
             return group_flowers
-
         except Exception as e:
             self._logger.info(e)
 
@@ -143,7 +136,6 @@ class SQLAlchemyAdapter:
                 self._session.delete(flower)
 
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -153,7 +145,6 @@ class SQLAlchemyAdapter:
                 {FlowersGroup.title: new_title}
             )
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -163,7 +154,6 @@ class SQLAlchemyAdapter:
                 {FlowersGroup.description: new_description}
             )
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -178,7 +168,6 @@ class SQLAlchemyAdapter:
                  }
             )
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -196,7 +185,6 @@ class SQLAlchemyAdapter:
                  }
             )
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -218,7 +206,6 @@ class SQLAlchemyAdapter:
 
             self._session.add(new_flower)
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -227,7 +214,6 @@ class SQLAlchemyAdapter:
             user_id_from_user_table = self.get_user_id(user_id)
             user_flowers = self._session.query(Flower).filter(Flower.user_id == user_id_from_user_table).all()
             return user_flowers
-
         except Exception as e:
             self._logger.info(e)
 
@@ -235,7 +221,6 @@ class SQLAlchemyAdapter:
         try:
             number_of_flowers_in_group = self._session.query(Flower).filter(Flower.group_id == group_id).count()
             return number_of_flowers_in_group
-
         except Exception as e:
             self._logger.info(e)
 
@@ -243,7 +228,6 @@ class SQLAlchemyAdapter:
         try:
             flower = self._session.query(Flower).filter(Flower.id == flower_id).one()
             return flower
-
         except Exception as e:
             self._logger.info(e)
 
@@ -252,7 +236,6 @@ class SQLAlchemyAdapter:
             flower_to_delete = self._session.query(Flower).get(flower_id)
             self._session.delete(flower_to_delete)
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -260,7 +243,6 @@ class SQLAlchemyAdapter:
         try:
             self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.title: new_title})
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -268,7 +250,6 @@ class SQLAlchemyAdapter:
         try:
             self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.description: new_description})
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -276,7 +257,6 @@ class SQLAlchemyAdapter:
         try:
             self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.photo: new_bytes_photo})
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
 
@@ -284,6 +264,5 @@ class SQLAlchemyAdapter:
         try:
             self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.group_id: new_group_id})
             self._session.commit()
-
         except Exception as e:
             self._logger.info(e)
