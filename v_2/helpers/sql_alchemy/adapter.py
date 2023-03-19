@@ -74,9 +74,9 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
-    def get_user_id(self, user_id: int) -> int | None:
+    def get_user_id(self, message_user_id: int) -> int | None:
         try:
-            user_id = self._session.query(User.id).filter(User.user_id == user_id).one()[0]
+            user_id = self._session.query(User.id).filter(User.user_id == message_user_id).one()[0]
             return user_id
         except Exception as e:
             self._logger.info(e)
@@ -85,9 +85,10 @@ class SQLAlchemyAdapter:
         Ниже идет логика взаимодействия с группами (сценариями полива).
     """
 
-    def add_group(self, str_user_id: str, json_data: dict) -> None:
+    def add_group(self, user_id: int, json_data: dict) -> None:
         try:
-            user_id_from_user_table = self.get_user_id(int(str_user_id))
+            str_user_id = str(user_id)
+            user_id_from_user_table = self.get_user_id(user_id)
 
             new_group = FlowersGroup(
                 user_id=user_id_from_user_table,
@@ -192,9 +193,10 @@ class SQLAlchemyAdapter:
         Ниже идет логика взаимодействия с цветами (растениями).
     """
 
-    def add_flower(self, str_user_id: str, json_data: dict, bytes_photo: bytes) -> None:
+    def add_flower(self, user_id: int, json_data: dict, bytes_photo: bytes) -> None:
         try:
-            user_id_from_user_table = self.get_user_id(int(str_user_id))
+            str_user_id = str(user_id)
+            user_id_from_user_table = self.get_user_id(user_id)
 
             new_flower = Flower(
                 user_id=user_id_from_user_table,

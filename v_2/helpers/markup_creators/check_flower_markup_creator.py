@@ -124,7 +124,6 @@ class CheckFlowerMarkupCreator(BaseMarkupCreator):
                 text=f'{group.title}',
                 callback_data=f'check_flower_change_group {group.title} {group.id}'
             )
-
             check_flower_change_group_markup.add(group_button)
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_flower_change_group BACK {flower_id}')

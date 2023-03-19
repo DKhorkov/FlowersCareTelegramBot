@@ -30,7 +30,6 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
                 text='Добавить сценарий полива',
                 callback_data='flower_adding_group add_group'
             )
-
             add_flower_group_markup.add(add_group_button)
 
         for group in flowers_groups:
@@ -38,7 +37,6 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
                 text=f'{group.title}',
                 callback_data=f'flower_adding_group {group.title} {group.id}'
             )
-
             add_flower_group_markup.add(group_button)
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_group BACK')
@@ -71,7 +69,6 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
             text='Добавить еще одно растение',
             callback_data='flower_adding_created another'
         )
-
         menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_created MENU')
         add_flower_created_markup.add(another_flower_button, menu_button)
         return add_flower_created_markup

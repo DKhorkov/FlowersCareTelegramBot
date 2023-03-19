@@ -32,7 +32,6 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
                 interval_button = InlineKeyboardButton(text=f'{num} дня', callback_data=f'group_adding_interval {num}')
             else:
                 interval_button = InlineKeyboardButton(text=f'{num} дней', callback_data=f'group_adding_interval {num}')
-
             interval_buttons_list.append(interval_button)
 
         add_group_watering_interval_markup.add(*interval_buttons_list)
@@ -50,7 +49,6 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
             text='Добавить растение',
             callback_data='group_adding_created add_flower'
         )
-
         menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_created MENU')
         add_flower_created_markup.add(add_flower_button, menu_button)
         return add_flower_created_markup

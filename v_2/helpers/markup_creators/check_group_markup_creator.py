@@ -16,7 +16,6 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
                 text='Добавить сценарий полива растений',
                 callback_data='check_group_selection add_group'
             )
-
             check_group_selection_markup.add(add_flower_button)
 
         for group in user_groups:
@@ -24,7 +23,6 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
                 text=f'{group.title}',
                 callback_data=f'check_group_selection {group.title} {group.id}'
             )
-
             check_group_selection_markup.add(group_button)
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='check_group_selection BACK')
@@ -142,11 +140,9 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
                     text=f'{num} дней',
                     callback_data=f'check_group_change_watering_interval {num} {group_id}'
                 )
-
             interval_buttons_list.append(interval_button)
 
         check_group_change_watering_interval_markup.add(*interval_buttons_list)
-
 
         back_button = InlineKeyboardButton(
             text='Назад ↩️',
@@ -169,7 +165,6 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
                 text=f'{flower.title}',
                 callback_data=f'check_group_see_flowers {flower.id} {group_id}'
             )
-
             check_group_see_flowers_markup.add(group_flower_button)
 
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_group_see_flowers BACK {group_id}')
