@@ -61,12 +61,6 @@ class JsonHandler:
         self.write_json_data(json_data)
         return json_data
 
-    def check_refactor_status(self, user_id: int) -> bool:
-        str_user_id = str(user_id)
-        json_data = self.read_json_file()
-        refactor_status = json_data[str_user_id]['refactor']
-        return refactor_status
-
     def activate_group_title(self, user_id: int) -> dict:
         json_data = self.read_json_file()
         json_data[str(user_id)]['set_group_title'] = True
@@ -175,11 +169,13 @@ class JsonHandler:
         self.write_json_data(json_data)
         return json_data
 
-    def deactivate_flower_photo(self, user_id: int) -> dict:
+    def deactivate_flower_photo(self, user_id: int) -> tuple[int, dict]:
+        str_user_id = str(user_id)
         json_data = self.read_json_file()
-        json_data[str(user_id)]['set_flower_photo'] = False
+        json_data[str_user_id]['set_flower_photo'] = False
+        flower_id = json_data[str_user_id]['flower_id']
         self.write_json_data(json_data)
-        return json_data
+        return flower_id, json_data
 
     def activate_refactor_flower_title(self, user_id: int, flower_id: int) -> dict:
         str_user_id = str(user_id)

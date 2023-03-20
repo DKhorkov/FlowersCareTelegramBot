@@ -11,6 +11,9 @@ from v_2.helpers.json_handler import JsonHandler
 from v_2.helpers.photo_processor import PhotoProcessor
 from v_2.helpers.message_handlers.main_message_handler import MessageHandler
 from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
+from v_2.helpers.json_api import JsonApi
+from v_2.helpers.processing_functions import change_flower_title, change_group_title, change_group_description, \
+    change_flower_description
 
 
 bot = TeleBot(token=TOKEN)
@@ -245,7 +248,7 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
 def add_flower_photo_call_query(call: CallbackQuery) -> None:
     try:
         if 'BACK' in call.data:
-            json = JsonHandler(json_name).deactivate_flower_photo(call.from_user.id)
+            _, json = JsonHandler(json_name).deactivate_flower_photo(call.from_user.id)
             MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
             json = JsonHandler(json_name).reset_appropriate_messages(call.from_user.id)
@@ -464,7 +467,7 @@ def check_flower_change_group_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).reset_appropriate_messages(call.from_user.id)
             MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
         else:
-            group_id = int(call.data.split(' ')[-1])
+            group_id = int(call.data.split(' ')[-2])
             sql_alchemy.change_flower_group(
                 flower_id=flower_id,
                 new_group_id=group_id
@@ -821,180 +824,108 @@ def check_group_change_call_query(call: CallbackQuery) -> None:
 """
 
 
-@bot.message_handler(content_types= ['text'], func=lambda message: JsonHandler(
-    json_name).check_refactor_status(message.from_user.id) is False)
+@bot.message_handler(content_types= ['text'], func=lambda message: JsonApi(message.from_user.id).refactor is False)
 def create_item_text_messages_handler(message: Message) -> None:
-    str_user_id = str(message.from_user.id)
-    json = JsonHandler(json_name).read_json_file()
-    if json.get(str_user_id, None) is None:
-        return MessageHandler.delete_message(bot=bot, message=message)
-
-    if json[str_user_id]['set_group_title']:
-        json = JsonHandler(json_name).activate_group_description_and_write_title(message)
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_add_group_description_message(bot=bot, user_id=message.from_user.id, json=json)
-    elif json[str_user_id]['set_group_description']:
-        json = JsonHandler(json_name).deactivate_group_description_and_write_itself(message)
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=message.from_user.id, json=json)
-    elif json[str_user_id]['set_flower_title']:
-        json = JsonHandler(json_name).activate_flower_description_and_write_title(message)
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_add_flower_description_message(bot=bot, user_id=message.from_user.id, json=json)
-    elif json[str_user_id]['set_flower_description']:
-        json = JsonHandler(json_name).deactivate_flower_description_and_write_itself(message)
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_add_flower_group_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            flowers_groups=sql_alchemy.get_user_groups(message.from_user.id)
-        )
-    else:
-        MessageHandler.delete_message(bot=bot, message=message)
+    try:
+        if JsonApi(message.from_user.id).set_group_title:
+            json = JsonHandler(json_name).activate_group_description_and_write_title(message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_add_group_description_message(bot=bot, user_id=message.from_user.id, json=json)
+        elif JsonApi(message.from_user.id).set_group_description:
+            json = JsonHandler(json_name).deactivate_group_description_and_write_itself(message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=message.from_user.id, json=json)
+        elif JsonApi(message.from_user.id).set_flower_title:
+            json = JsonHandler(json_name).activate_flower_description_and_write_title(message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_add_flower_description_message(bot=bot, user_id=message.from_user.id, json=json)
+        elif JsonApi(message.from_user.id).set_flower_description:
+            json = JsonHandler(json_name).deactivate_flower_description_and_write_itself(message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_add_flower_group_message(
+                bot=bot,
+                user_id=message.from_user.id,
+                json=json,
+                flowers_groups=sql_alchemy.get_user_groups(message.from_user.id)
+            )
+        else:
+            MessageHandler.delete_message(bot=bot, message=message)
+    except Exception as e:
+        logger.error(e)
 
 
-@bot.message_handler(content_types= ['photo'], func=lambda message: JsonHandler(
-    json_name).check_refactor_status(message.from_user.id) is False)
+@bot.message_handler(content_types= ['photo'], func=lambda message: JsonApi(message.from_user.id).refactor is False)
 def create_item_photo_messages_handler(message: Message) -> None:
-    str_user_id = str(message.from_user.id)
-    json = JsonHandler(json_name).read_json_file()
-    if json.get(str_user_id, None) is None:
-        return MessageHandler.delete_message(bot=bot, message=message)
+    try:
+        if JsonApi(message.from_user.id).set_flower_photo:
+            _, json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
 
-    if json[str_user_id]['set_flower_photo']:
-        json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
+            photo = bot.get_file(message.photo[-1].file_id)
+            bytes_photo = PhotoProcessor.get_photo_from_message(photo)
 
-        photo = bot.get_file(message.photo[-1].file_id)
-        bytes_photo = PhotoProcessor.get_photo_from_message(photo)
+            sql_alchemy.add_flower(
+                user_id=message.from_user.id,
+                json_data=json,
+                bytes_photo=bytes_photo
+            )
 
-        sql_alchemy.add_flower(
-            user_id=message.from_user.id,
-            json_data=json,
-            bytes_photo=bytes_photo
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_add_flower_created_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            bytes_photo=bytes_photo
-        )
-    else:
-        MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_add_flower_created_message(
+                bot=bot,
+                user_id=message.from_user.id,
+                json=json,
+                bytes_photo=bytes_photo
+            )
+        else:
+            MessageHandler.delete_message(bot=bot, message=message)
+    except Exception as e:
+        logger.error(e)
 
 
-@bot.message_handler(content_types= ['text'], func=lambda message: JsonHandler(
-    json_name).check_refactor_status(message.from_user.id) is True)
+@bot.message_handler(content_types= ['text'], func=lambda message: JsonApi(message.from_user.id).refactor is True)
 def change_item_text_messages_handler(message: Message) -> None:
-    str_user_id = str(message.from_user.id)
-    json = JsonHandler(json_name).read_json_file()
-    if json.get(str_user_id, None) is None:
-        return MessageHandler.delete_message(bot=bot, message=message)
-
-    if json[str_user_id]['set_group_title']:
-        group_id, group_title, json = JsonHandler(json_name).deactivate_refactor_group_title(message)
-
-        sql_alchemy.change_group_title(
-            group_id=group_id,
-            new_title=group_title
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_check_group_choose_changing_point_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            group_id=group_id,
-            group=sql_alchemy.get_group(group_id),
-            sql_alchemy=sql_alchemy
-        )
-    elif json[str_user_id]['set_group_description']:
-        group_id, group_description, json = JsonHandler(json_name).deactivate_refactor_group_description(message)
-
-        sql_alchemy.change_group_description(
-            group_id=group_id,
-            new_description=group_description
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_check_group_choose_changing_point_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            group_id=group_id,
-            group=sql_alchemy.get_group(group_id),
-            sql_alchemy=sql_alchemy
-        )
-    elif json[str_user_id]['set_flower_title']:
-        flower_id, flower_title, json = JsonHandler(json_name).deactivate_refactor_flower_title(message)
-
-        sql_alchemy.change_flower_title(
-            flower_id=flower_id,
-            new_title=flower_title
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_check_flower_choose_changing_point_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            flower=sql_alchemy.get_flower(flower_id),
-            flower_id=flower_id,
-            sql_alchemy=sql_alchemy
-        )
-    elif json[str_user_id]['set_flower_description']:
-        flower_id, flower_description, json = JsonHandler(json_name).deactivate_refactor_flower_description(message)
-
-        sql_alchemy.change_flower_description(
-            flower_id=flower_id,
-            new_description=flower_description
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_check_flower_choose_changing_point_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            flower=sql_alchemy.get_flower(flower_id),
-            flower_id=flower_id,
-            sql_alchemy=sql_alchemy
-        )
-    else:
-        MessageHandler.delete_message(bot=bot, message=message)
+    try:
+        if JsonApi(message.from_user.id).set_group_title:
+            change_group_title(bot=bot, message=message, sql_alchemy=sql_alchemy)
+        elif JsonApi(message.from_user.id).set_group_description:
+            change_group_description(bot=bot, message=message, sql_alchemy=sql_alchemy)
+        elif JsonApi(message.from_user.id).set_flower_title:
+            change_flower_title(bot=bot, message=message, sql_alchemy=sql_alchemy)
+        elif JsonApi(message.from_user.id).set_flower_description:
+            change_flower_description(bot=bot, message=message, sql_alchemy=sql_alchemy)
+        else:
+            MessageHandler.delete_message(bot=bot, message=message)
+    except Exception as e:
+        logger.error(e)
 
 
-@bot.message_handler(content_types= ['photo'], func=lambda message: JsonHandler(
-    json_name).check_refactor_status(message.from_user.id) is True)
+@bot.message_handler(content_types= ['photo'], func=lambda message: JsonApi(message.from_user.id).refactor is True)
 def change_item_photo_messages_handler(message: Message) -> None:
-    str_user_id = str(message.from_user.id)
-    json = JsonHandler(json_name).read_json_file()
-    if json.get(str_user_id, None) is None:
-        return MessageHandler.delete_message(bot=bot, message=message)
+    try:
+        if JsonApi(message.from_user.id).set_flower_photo:
+            flower_id, json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
 
-    if json[str_user_id]['set_flower_photo']:
-        flower_id, json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
+            photo = bot.get_file(message.photo[-1].file_id)
+            bytes_photo = PhotoProcessor.get_photo_from_message(photo)
 
-        photo = bot.get_file(message.photo[-1].file_id)
-        bytes_photo = PhotoProcessor.get_photo_from_message(photo)
+            sql_alchemy.change_flower_photo(
+                flower_id=flower_id,
+                new_bytes_photo=bytes_photo
+            )
 
-        sql_alchemy.change_flower_photo(
-            flower_id=flower_id,
-            new_bytes_photo=bytes_photo
-        )
-
-        MessageHandler.delete_message(bot=bot, message=message)
-        MessageHandler.send_check_flower_choose_changing_point_message(
-            bot=bot,
-            user_id=message.from_user.id,
-            json=json,
-            flower=sql_alchemy.get_flower(flower_id),
-            flower_id=flower_id,
-            sql_alchemy=sql_alchemy
-        )
-    else:
-        MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.send_check_flower_choose_changing_point_message(
+                bot=bot,
+                user_id=message.from_user.id,
+                json=json,
+                flower=sql_alchemy.get_flower(flower_id),
+                flower_id=flower_id,
+                sql_alchemy=sql_alchemy
+            )
+        else:
+            MessageHandler.delete_message(bot=bot, message=message)
+    except Exception as e:
+        logger.error(e)
 
 
 @bot.message_handler(content_types= ['document', 'audio', 'video', 'sticker', 'video_note',

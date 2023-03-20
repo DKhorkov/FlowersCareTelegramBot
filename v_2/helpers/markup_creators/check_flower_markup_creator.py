@@ -122,7 +122,7 @@ class CheckFlowerMarkupCreator(BaseMarkupCreator):
         for group in user_groups:
             group_button = InlineKeyboardButton(
                 text=f'{group.title}',
-                callback_data=f'check_flower_change_group {group.title} {group.id}'
+                callback_data=f'check_flower_change_group {group.id} {flower_id}'
             )
             check_flower_change_group_markup.add(group_button)
 
