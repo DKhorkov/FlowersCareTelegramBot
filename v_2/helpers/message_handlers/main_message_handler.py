@@ -2,8 +2,9 @@ from v_2.helpers.message_handlers.add_flower_message_handler import AddFlowerMes
 from v_2.helpers.message_handlers.add_group_massega_handler import AddGroupMessageHandler
 from v_2.helpers.message_handlers.check_group_message_handler import CheckGroupMessageHandler
 from v_2.helpers.message_handlers.check_flower_message_handler import CheckFlowerMessageHandler
+from v_2.helpers.message_handlers.watering_time_message_handler import WateringTimeMessageHandler
 
 
 class MessageHandler(AddGroupMessageHandler, AddFlowerMessageHandler, CheckFlowerMessageHandler,
-                     CheckGroupMessageHandler):
+                     CheckGroupMessageHandler, WateringTimeMessageHandler):
     pass

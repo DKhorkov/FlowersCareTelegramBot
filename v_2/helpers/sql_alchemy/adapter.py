@@ -81,6 +81,13 @@ class SQLAlchemyAdapter:
         except Exception as e:
             self._logger.info(e)
 
+    def get_user_by_id(self, user_id: int) -> Type[User]:
+        try:
+            user = self._session.query(User).filter(User.id == user_id).one()
+            return user
+        except Exception as e:
+            self._logger.info(e)
+
     """
         Ниже идет логика взаимодействия с группами (сценариями полива).
     """
@@ -101,6 +108,13 @@ class SQLAlchemyAdapter:
 
             self._session.add(new_group)
             self._session.commit()
+        except Exception as e:
+            self._logger.info(e)
+
+    def get_all_groups(self) -> list[Type[FlowersGroup]] | list:
+        try:
+            flowers_groups = self._session.query(FlowersGroup).all()
+            return flowers_groups
         except Exception as e:
             self._logger.info(e)
 

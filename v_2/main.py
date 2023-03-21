@@ -701,7 +701,7 @@ def check_group_choose_changing_point_call_query(call: CallbackQuery) -> None:
                 MessageHandler.send_check_group_change_last_watering_date_message(
                     bot=bot,
                     user_id=call.from_user.id,
-                    json=JsonHandler(json_name).read_json_file(),
+                    json=JsonHandler(json_name).write_group_id(user_id=call.from_user.id, group_id=group_id),
                     group=sql_alchemy.get_group(group_id),
                     sql_alchemy=sql_alchemy
                 )
@@ -709,7 +709,7 @@ def check_group_choose_changing_point_call_query(call: CallbackQuery) -> None:
                 MessageHandler.send_check_group_change_watering_interval_message(
                     bot=bot,
                     user_id=call.from_user.id,
-                    json=JsonHandler(json_name).read_json_file(),
+                    json=JsonHandler(json_name).write_group_id(user_id=call.from_user.id, group_id=group_id),
                     group_id=group_id,
                     group=sql_alchemy.get_group(group_id),
                     sql_alchemy=sql_alchemy
@@ -933,6 +933,23 @@ def change_item_photo_messages_handler(message: Message) -> None:
 def dump_messages_handler(message: Message) -> None:
     MessageHandler.delete_message(bot=bot, message=message)
 
+
+"""
+    Ниже идет логика по напоминаниям о поливе групп растений.
+"""
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('group_watering_status'))
+def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
+    try:
+        if 'NO' in call.data:
+            pass
+        elif 'YES' in call.data:
+            group_id = int(call.data.split(' ')[-1])
+            watering_date = call.data.split(' ')[-2]
+            sql_alchemy.update_next_watering_date(group_id=group_id, watering_date=watering_date)
+    except Exception as e:
+        logger.error(e)
 
 if __name__ == '__main__':
     bot.infinity_polling(timeout=100)
