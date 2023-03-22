@@ -16,9 +16,16 @@ class DatabaseParser:
     @staticmethod
     def parse_group(sql_alchemy_adapter: SQLAlchemyAdapter, group: Type[FlowersGroup]) -> str:
         number_of_flowers = sql_alchemy_adapter.get_number_of_flowers_in_group(group.id)
+        if group.watering_interval in [1, 21]:
+            days = 'день'
+        elif group.watering_interval in [2, 3, 4]:
+            days = 'дня'
+        else:
+            days = 'дней'
+
         return f"<b>Название сценария полива:</b> {group.title}\n" \
                f"<b>Описание сценария полива:</b> {group.description}\n" \
                f"<b>Количество растений в сценарии:</b> {number_of_flowers}\n\n" \
                f"<b>Дата последнего полива:</b> {group.last_watering_date.split(' ')[0]}\n" \
-               f"<b>Интервал полива:</b> {group.watering_interval}\n" \
+               f"<b>Интервал полива:</b> {group.watering_interval} {days}\n" \
                f"<b>Дата следующего полива:</b> {group.next_watering_date.split(' ')[0]}\n\n"

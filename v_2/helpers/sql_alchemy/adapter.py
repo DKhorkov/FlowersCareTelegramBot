@@ -7,7 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import InvalidRequestError
 
-from v_2.helpers.sql_alchemy.models import Base, User, FlowersGroup, Flower
+from v_2.helpers.sql_alchemy.models import Base, User, FlowersGroup, Flower, Notification
 
 
 class SQLAlchemyAdapter:
@@ -37,8 +37,8 @@ class SQLAlchemyAdapter:
         try:
             user = self._session.query(User).filter(User.user_id == user_id).first()
             if user is None:
-                return True
-            return False
+                return False
+            return True
         except Exception as e:
             self._logger.info(e)
 
@@ -143,12 +143,15 @@ class SQLAlchemyAdapter:
 
     def delete_group(self, group_id: int) -> None:
         try:
-            flowers_group_to_delete = self._session.query(FlowersGroup).get(group_id)
-            self._session.delete(flowers_group_to_delete)
+            notification_to_delete = self._session.query(Notification).filter(Notification.group_id == group_id).one()
+            self._session.delete(notification_to_delete)
 
             flowers_to_delete = self._session.query(Flower).filter(Flower.group_id == group_id).all()
             for flower in flowers_to_delete:
                 self._session.delete(flower)
+
+            flowers_group_to_delete = self._session.query(FlowersGroup).get(group_id)
+            self._session.delete(flowers_group_to_delete)
 
             self._session.commit()
         except Exception as e:
@@ -279,6 +282,69 @@ class SQLAlchemyAdapter:
     def change_flower_group(self, flower_id: int, new_group_id: int) -> None:
         try:
             self._session.query(Flower).filter(Flower.id == flower_id).update({Flower.group_id: new_group_id})
+            self._session.commit()
+        except Exception as e:
+            self._logger.info(e)
+
+    """
+        Ниже идет логика взаимодействия с уведомлениями.
+    """
+
+    def add_notification(self, group_id: int, message_id: int) -> None:
+        try:
+            new_notification = Notification(
+                group_id=group_id,
+                message_id=message_id
+            )
+
+            self._session.add(new_notification)
+            self._session.commit()
+        except Exception as e:
+            self._logger.info(e)
+
+    def delete_notification(self, group_id: int) -> None:
+        try:
+            notification_to_delete = self._session.query(Notification).get(group_id)
+            self._session.delete(notification_to_delete)
+            self._session.commit()
+        except Exception as e:
+            self._logger.info(e)
+
+    def change_notification_message_id(self, group_id: int, message_id: int) -> None:
+        try:
+            self._session.query(Notification).filter(Notification.group_id == group_id).update(
+                {Notification.message_id: message_id}
+            )
+            self._session.commit()
+        except Exception as e:
+            self._logger.info(e)
+
+    def check_group_notification_existence(self, group_id: int) -> bool:
+        try:
+            notification = self._session.query(Notification).filter(Notification.group_id == group_id).first()
+            if notification is None:
+                return False
+            return True
+        except Exception as e:
+            self._logger.info(e)
+
+    def get_notification(self, group_id: int) -> Type[Notification]:
+        try:
+            notification = self._session.query(Notification).filter(Notification.group_id == group_id).one()
+            return notification
+        except Exception as e:
+            self._logger.info(e)
+
+    def update_las_and_next_watering_dates(self, group_id: int, last_watering_date: str) -> None:
+        try:
+            flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
+            next_watering_date = datetime.strptime(last_watering_date,
+                '%Y-%m-%d %H:%M:%S') + timedelta(days=flowers_group.watering_interval)
+
+            self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).update(
+                {FlowersGroup.last_watering_date: last_watering_date,
+                 FlowersGroup.next_watering_date: str(next_watering_date)}
+            )
             self._session.commit()
         except Exception as e:
             self._logger.info(e)

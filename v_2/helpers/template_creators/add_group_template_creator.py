@@ -33,8 +33,8 @@ class AddGroupTemplateCreator(BaseTemplateCreator):
                    f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
                    f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
                    f"<b>Дата последнего полива:</b> " \
-                   f"{self.__transform_to_russian_date(json[str_user_id]['last_watering_date'])}\n" \
+                   f"{self._transform_to_russian_date(json[str_user_id]['last_watering_date'])}\n" \
                    f"<b>Интервал полива:</b> {json[str_user_id]['watering_interval']}\n" \
                    f"<b>Дата следующего полива:</b> " \
-                   f"{self.__transform_to_russian_date(json[str_user_id]['next_watering_date'])}\n\n"
+                   f"{self._transform_to_russian_date(json[str_user_id]['next_watering_date'])}\n\n"
         return template

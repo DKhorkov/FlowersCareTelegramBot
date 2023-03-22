@@ -3,6 +3,7 @@ import pickle
 from telebot import TeleBot
 from telebot_calendar import CallbackData, RUSSIAN_LANGUAGE
 from telebot.types import CallbackQuery, Message
+from threading import Thread
 
 from v_2.configs import TOKEN, json_name
 from v_2.helpers.logging_system import get_logger
@@ -12,6 +13,7 @@ from v_2.helpers.photo_processor import PhotoProcessor
 from v_2.helpers.message_handlers.main_message_handler import MessageHandler
 from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 from v_2.helpers.json_api import JsonApi
+from v_2.helpers.watering_time_checker import WateringTimeChecker
 from v_2.helpers.processing_functions import change_flower_title, change_group_title, change_group_description, \
     change_flower_description
 
@@ -20,8 +22,7 @@ bot = TeleBot(token=TOKEN)
 logger = get_logger('bot_logs')
 sql_alchemy = SQLAlchemyAdapter(logger=logger)
 sql_alchemy.create_tables()
-
-
+watering_time_checker = WateringTimeChecker(bot=bot, sql_alchemy=sql_alchemy, logger=logger)
 calendar = CustomizedCalendar(language=RUSSIAN_LANGUAGE)
 create_group_calendar_callback = CallbackData("create_group_calendar", "action", "year", "month", "day")
 change_group_calendar_callback = CallbackData("change_group_calendar", "action", "year", "month", "day")
@@ -35,7 +36,7 @@ change_group_calendar_callback = CallbackData("change_group_calendar", "action",
 
 @bot.message_handler(commands=["start"])
 def start(message: Message) -> None:
-    if sql_alchemy.check_if_user_already_registered(message.from_user.id):
+    if not sql_alchemy.check_if_user_already_registered(message.from_user.id):
         sql_alchemy.add_user(message)
         #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
 
@@ -943,13 +944,23 @@ def dump_messages_handler(message: Message) -> None:
 def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
     try:
         if 'NO' in call.data:
-            pass
+            MessageHandler.send_need_watering_callback_answer(bot=bot, callback_query_id=call.id)
         elif 'YES' in call.data:
-            group_id = int(call.data.split(' ')[-1])
-            watering_date = call.data.split(' ')[-2]
-            sql_alchemy.update_next_watering_date(group_id=group_id, watering_date=watering_date)
+            group_id = int(call.data.split(';')[-1])
+            last_watering_date = call.data.split(';')[-2]
+            sql_alchemy.update_las_and_next_watering_dates(group_id=group_id, last_watering_date=last_watering_date)
+            notification = sql_alchemy.get_notification(group_id=group_id)
+            MessageHandler.delete_notification_message(
+                bot=bot,
+                user_id=call.from_user.id,
+                message_id=notification.message_id
+            )
+
+            MessageHandler.send_praising_callback_answer(bot=bot, callback_query_id=call.id)
     except Exception as e:
         logger.error(e)
 
+
 if __name__ == '__main__':
+    notification_thread = Thread(target=watering_time_checker.check_subscribes, daemon=True).start()
     bot.infinity_polling(timeout=100)

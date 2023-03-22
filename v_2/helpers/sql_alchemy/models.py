@@ -35,3 +35,10 @@ class Flower(Base):
     title = Column(Text(), nullable=False)
     description = Column(Text(), nullable=False)
     photo = Column(BLOB(), nullable=False)
+
+
+class Notification(Base):
+    __tablename__ = 'notification'
+    id = Column(Integer(), primary_key=True, autoincrement=True, nullable=False)
+    group_id = Column(Integer(), ForeignKey('flowers_group.id', ondelete='CASCADE'), nullable=False)
+    message_id = Column(Integer(), nullable=False)
