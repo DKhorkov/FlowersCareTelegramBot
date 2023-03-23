@@ -36,12 +36,15 @@ change_group_calendar_callback = CallbackData("change_group_calendar", "action",
 
 @bot.message_handler(commands=["start"])
 def start(message: Message) -> None:
-    if not sql_alchemy.check_if_user_already_registered(message.from_user.id):
-        sql_alchemy.add_user(message)
-        #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
+    try:
+        if not sql_alchemy.check_if_user_already_registered(message.from_user.id):
+            sql_alchemy.add_user(message)
+            #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
 
-    message_for_update = MessageHandler.send_start_message(bot=bot, message=message)
-    JsonHandler(json_name).prepare_json(user_id=message.from_user.id, message_for_update=message_for_update)
+        message_for_update = MessageHandler.send_start_message(bot=bot, message=message)
+        JsonHandler(json_name).prepare_json(user_id=message.from_user.id, message_for_update=message_for_update)
+    except Exception as e:
+        logger.error(e)
 
 
 """
@@ -610,6 +613,9 @@ def check_group_see_flowers_call_query(call: CallbackQuery) -> None:
         elif "MENU" in call.data:
             json = JsonHandler(json_name).reset_appropriate_messages(call.from_user.id)
             MessageHandler.send_back_to_menu_message(bot=bot, user_id=call.from_user.id, json=json)
+        elif 'add_flower' in call.data:
+            json = JsonHandler(json_name).activate_flower_title(call.from_user.id)
+            MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
         else:
             flower_id = int(call.data.split(' ')[-2])
             MessageHandler.send_check_flower_action_message(
@@ -932,7 +938,10 @@ def change_item_photo_messages_handler(message: Message) -> None:
 @bot.message_handler(content_types= ['document', 'audio', 'video', 'sticker', 'video_note',
                                      'voice', 'location', 'contact'])
 def dump_messages_handler(message: Message) -> None:
-    MessageHandler.delete_message(bot=bot, message=message)
+    try:
+        MessageHandler.delete_message(bot=bot, message=message)
+    except Exception as e:
+        logger.error(e)
 
 
 """

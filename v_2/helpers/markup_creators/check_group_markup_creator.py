@@ -167,6 +167,13 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
             )
             check_group_see_flowers_markup.add(group_flower_button)
 
+        if len(group_flowers) == 0:
+            add_flower_button = InlineKeyboardButton(
+                text='Добавить растение',
+                callback_data=f'check_group_see_flowers add_flower {group_id}'
+            )
+            check_group_see_flowers_markup.add(add_flower_button)
+
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data=f'check_group_see_flowers BACK {group_id}')
         menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data=f'check_group_see_flowers MENU {group_id}')
         check_group_see_flowers_markup.add(back_button, menu_button)

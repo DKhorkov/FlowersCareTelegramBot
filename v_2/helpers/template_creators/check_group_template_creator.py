@@ -41,5 +41,8 @@ class CheckGroupTemplateCreator(BaseTemplateCreator):
         return f'{group_description}\n\n Пожалуйста, выберите обновленную дату последнего полива для данного сценария:'
 
     @staticmethod
-    def check_group_see_flowers(group_description: str) -> str:
-        return f'{group_description}\n\n Пожалуйста, выберите растение данного сценария полива для просмотра:'
+    def check_group_see_flowers(group_description: str, group_flowers_length: int) -> str:
+        if group_flowers_length != 0:
+            return f'{group_description}\n\n Пожалуйста, выберите растение данного сценария полива для просмотра:'
+        else:
+            return f'{group_description}\n\n Вы еще не добавили ни одного растения в данный сценарий полива!'

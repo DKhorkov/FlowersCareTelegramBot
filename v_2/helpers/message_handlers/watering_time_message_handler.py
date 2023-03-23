@@ -19,41 +19,29 @@ class WateringTimeMessageHandler(BaseMessageHandler):
     @staticmethod
     def send_watering_notification_message(bot: telebot.TeleBot, user_id: int, group: Type[FlowersGroup],
                                            group_flowers: list[Type[Flower]], current_date: datetime) -> Message:
-        try:
-            watering_notification_message = bot.send_message(
-                chat_id=user_id,
-                reply_markup=MarkupCreator().group_watering_status_markup(group_id=group.id, current_date=current_date),
-                text=TemplateCreator().group_watering_status(group=group, group_flowers=group_flowers),
-                parse_mode='HTML'
-                )
-
-            return watering_notification_message
-        except Exception as e:
-            logger.error(e)
-
-    @staticmethod
-    def delete_notification_message(bot: telebot.TeleBot, user_id: int, message_id: int):
-        try:
-            bot.delete_message(chat_id=user_id, message_id=message_id)
-        except Exception as e:
-            logger.error(e)
-
-    @staticmethod
-    def send_need_watering_callback_answer(bot: telebot.TeleBot, callback_query_id: int):
-        try:
-            bot.answer_callback_query(
-                callback_query_id=callback_query_id,
-                text="Пожалуйста, полейте растения, принадлежащие к данному сценарию полива!"
+        watering_notification_message = bot.send_message(
+            chat_id=user_id,
+            reply_markup=MarkupCreator().group_watering_status_markup(group_id=group.id, current_date=current_date),
+            text=TemplateCreator().group_watering_status(group=group, group_flowers=group_flowers),
+            parse_mode='HTML'
             )
-        except Exception as e:
-            logger.error(e)
+
+        return watering_notification_message
 
     @staticmethod
-    def send_praising_callback_answer(bot: telebot.TeleBot, callback_query_id: int):
-        try:
-            bot.answer_callback_query(
-                callback_query_id=callback_query_id,
-                text="Вы молодец! Растения вам благодарны ❤️"
-            )
-        except Exception as e:
-            logger.error(e)
+    def delete_notification_message(bot: telebot.TeleBot, user_id: int, message_id: int) -> None:
+        bot.delete_message(chat_id=user_id, message_id=message_id)
+
+    @staticmethod
+    def send_need_watering_callback_answer(bot: telebot.TeleBot, callback_query_id: int) -> None:
+        bot.answer_callback_query(
+            callback_query_id=callback_query_id,
+            text="Пожалуйста, полейте растения, принадлежащие к данному сценарию полива!"
+        )
+
+    @staticmethod
+    def send_praising_callback_answer(bot: telebot.TeleBot, callback_query_id: int) -> None:
+        bot.answer_callback_query(
+            callback_query_id=callback_query_id,
+            text="Вы молодец! Растения вам благодарны ❤️"
+        )
