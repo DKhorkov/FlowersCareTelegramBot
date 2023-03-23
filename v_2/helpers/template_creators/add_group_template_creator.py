@@ -20,16 +20,16 @@ class AddGroupTemplateCreator(BaseTemplateCreator):
                    f"Пожалуйста, выберите дату последнего полива для создаваемого сценария:"
         return template
 
-    @staticmethod
-    def add_group_watering_interval(json: dict, str_user_id: str) -> str:
+    def add_group_watering_interval(self, json: dict, str_user_id: str) -> str:
         template = f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
                    f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
-                   f"<b>Дата последнего полива:</b> {json[str_user_id]['last_watering_date'].split(' ')[0]}\n\n" \
+                   f"<b>Дата последнего полива:</b> " \
+                   f"{self._transform_to_russian_date(json[str_user_id]['last_watering_date'])}\n\n" \
                    f"Пожалуйста, выберите интервал полива для создаваемого сценария:"
         return template
 
     def group_created(self, json: dict, str_user_id: str) -> str:
-        template = f"✅ <b>Сценарий полива успешно добавлен:</b> ✅\n\n" \
+        template = f"✅ <b>Сценарий полива успешно добавлен:</b>\n\n" \
                    f"<b>Название сценария полива:</b> {json[str_user_id]['group_title']}\n" \
                    f"<b>Описание сценария полива:</b> {json[str_user_id]['group_description']}\n" \
                    f"<b>Дата последнего полива:</b> " \

@@ -115,8 +115,13 @@ class SQLAlchemyAdapter:
         return group_flowers
 
     def delete_group(self, group_id: int) -> None:
-        notification_to_delete = self._session.query(Notification).filter(Notification.group_id == group_id).one()
-        self._session.delete(notification_to_delete)
+        """
+            Здесь необходимо использовать all, а не one|first, чтобы не словить ошибок, когда еще не было добавлено
+            записей в таблицу Notification
+        """
+        notifications_to_delete = self._session.query(Notification).filter(Notification.group_id == group_id).all()
+        for notification in notifications_to_delete:
+            self._session.delete(notification)
 
         flowers_to_delete = self._session.query(Flower).filter(Flower.group_id == group_id).all()
         for flower in flowers_to_delete:

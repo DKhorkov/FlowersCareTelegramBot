@@ -17,6 +17,19 @@ logger = get_logger('bot_logs')
 class AddFlowerMessageHandler(BaseMessageHandler):
 
     @staticmethod
+    def send_add_flower_no_groups_message(bot: telebot.TeleBot, user_id: int, json: dict) -> None:
+        bot.edit_message_media(
+            chat_id=user_id,
+            message_id=json[str(user_id)]['message_for_update'],
+            reply_markup=MarkupCreator().add_flower_no_groups_markup(),
+            media=InputMediaPhoto(
+                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                caption=TemplateCreator().add_flower_no_groups(),
+                parse_mode='HTML'
+            )
+        )
+
+    @staticmethod
     def send_add_flower_title_message(bot: telebot.TeleBot, user_id: int, json: dict) -> None:
         bot.edit_message_media(
             chat_id=user_id,
@@ -74,8 +87,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().add_flower_group(
                     json=json,
-                    str_user_id=str(user_id),
-                    empty_groups=True if len(flowers_groups) > 0 else False
+                    str_user_id=str(user_id)
                 ),
                 parse_mode='HTML'
             )

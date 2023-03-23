@@ -8,6 +8,18 @@ from v_2.helpers.sql_alchemy.models import FlowersGroup
 class AddFlowerMarkupCreator(BaseMarkupCreator):
 
     @staticmethod
+    def add_flower_no_groups_markup() -> InlineKeyboardMarkup:
+        add_flower_description_markup = InlineKeyboardMarkup(row_width=1)
+        add_group_button = InlineKeyboardButton(
+            text='Добавить сценарий полива',
+            callback_data='flower_adding_no_groups add_group'
+        )
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_no_groups BACK')
+        add_flower_description_markup.add(add_group_button, back_button)
+        return add_flower_description_markup
+
+    @staticmethod
     def add_flower_title_markup() -> InlineKeyboardMarkup:
         add_flower_title_markup = InlineKeyboardMarkup(row_width=1)
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_title BACK')
@@ -25,17 +37,10 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
     @staticmethod
     def add_flower_group_markup(flowers_groups: list[Type[FlowersGroup]]) -> InlineKeyboardMarkup:
         add_flower_group_markup = InlineKeyboardMarkup(row_width=1)
-        if len(flowers_groups) == 0:
-            add_group_button = InlineKeyboardButton(
-                text='Добавить сценарий полива',
-                callback_data='flower_adding_group add_group'
-            )
-            add_flower_group_markup.add(add_group_button)
-
         for group in flowers_groups:
             group_button = InlineKeyboardButton(
                 text=f'{group.title}',
-                callback_data=f'flower_adding_group {group.title} {group.id}'
+                callback_data=f'flower_adding_group {group.id}'
             )
             add_flower_group_markup.add(group_button)
 

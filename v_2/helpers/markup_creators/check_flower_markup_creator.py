@@ -21,7 +21,7 @@ class CheckFlowerMarkupCreator(BaseMarkupCreator):
         for flower in user_flowers:
             flower_button = InlineKeyboardButton(
                 text=f'{flower.title}',
-                callback_data=f'check_flower_selection {flower.title} {flower.id}'
+                callback_data=f'check_flower_selection {flower.id}'
             )
 
             check_flower_selection_markup.add(flower_button)

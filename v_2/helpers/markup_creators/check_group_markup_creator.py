@@ -21,7 +21,7 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
         for group in user_groups:
             group_button = InlineKeyboardButton(
                 text=f'{group.title}',
-                callback_data=f'check_group_selection {group.title} {group.id}'
+                callback_data=f'check_group_selection {group.id}'
             )
             check_group_selection_markup.add(group_button)
 
@@ -122,7 +122,7 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
 
     @staticmethod
     def check_group_change_watering_interval_markup(group_id: int) -> InlineKeyboardMarkup:
-        check_group_change_watering_interval_markup = InlineKeyboardMarkup(row_width=1)
+        check_group_change_watering_interval_markup = InlineKeyboardMarkup(row_width=2)
         interval_buttons_list = []
         for num in watering_intervals:
             if num in [1, 21]:

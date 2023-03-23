@@ -1,8 +1,11 @@
 import json
 import os
 
-from telebot.types import Message, CallbackQuery
+from typing import Type
+from telebot.types import Message
 from datetime import datetime, timedelta
+
+from v_2.helpers.sql_alchemy.models import FlowersGroup
 
 
 class JsonHandler:
@@ -153,13 +156,11 @@ class JsonHandler:
         self.write_json_data(json_data)
         return json_data
 
-    def write_flower_group_title_and_id(self, call: CallbackQuery) -> dict:
-        str_user_id = str(call.from_user.id)
+    def write_flower_group_title_and_id(self, flower_group: Type[FlowersGroup], user_id: int) -> dict:
+        str_user_id = str(user_id)
         json_data = self.read_json_file()
-        flower_group_title = call.data.split(" ")[-2]
-        flower_group_id = int(call.data.split(" ")[-1])
-        json_data[str_user_id]['flower_group_title'] = flower_group_title
-        json_data[str_user_id]['flower_group_id'] = flower_group_id
+        json_data[str_user_id]['flower_group_id'] = flower_group.id
+        json_data[str_user_id]['flower_group_title'] = flower_group.title
         self.write_json_data(json_data)
         return json_data
 
@@ -173,7 +174,7 @@ class JsonHandler:
         str_user_id = str(user_id)
         json_data = self.read_json_file()
         json_data[str_user_id]['set_flower_photo'] = False
-        flower_id = json_data[str_user_id]['flower_id']
+        flower_id = json_data[str_user_id].get('flower_id', 0)
         self.write_json_data(json_data)
         return flower_id, json_data
 

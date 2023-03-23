@@ -54,7 +54,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_action(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -76,7 +76,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_choose_changing_point(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -97,7 +97,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_confirm_delete(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -121,7 +121,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_see_flowers(
                     group_flowers_length=len(group_flowers),
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -142,7 +142,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_title(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -163,7 +163,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_description(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -187,7 +187,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_last_watering_date(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )
@@ -209,7 +209,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_watering_interval(
-                    group_description=DatabaseParser.parse_group(
+                    group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
                     )

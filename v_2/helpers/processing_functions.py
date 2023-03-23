@@ -7,6 +7,10 @@ from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 from v_2.configs import json_name
 
 
+def get_user_groups_and_flowers(sql_alchemy: SQLAlchemyAdapter, user_id: int) -> tuple[list, list]:
+    user_groups = sql_alchemy.get_user_groups(user_id)
+    user_flowers = sql_alchemy.get_user_flowers(user_id)
+    return user_groups, user_flowers
 
 def change_group_title(bot: TeleBot, message: Message, sql_alchemy: SQLAlchemyAdapter) -> None:
     group_id, group_title, json = JsonHandler(json_name).deactivate_refactor_group_title(message)
