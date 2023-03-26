@@ -27,10 +27,10 @@ class WateringTimeChecker:
                 for group in groups:
                     current_time = datetime.now()
                     next_watering_time = datetime.strptime(group.next_watering_date, '%Y-%m-%d %H:%M:%S')
-                    if  next_watering_time < current_time:
+                    if next_watering_time < current_time:
                         user = self.__alchemy.get_user_by_id(group.user_id)
                         group_flowers = self.__alchemy.get_group_flowers(group_id=group.id)
-                        self.__send_notification(user, group, group_flowers)
+                        self.__send_notification(user=user, group=group, group_flowers=group_flowers)
             except Exception as e:
                 self.__logger.info(e)
 

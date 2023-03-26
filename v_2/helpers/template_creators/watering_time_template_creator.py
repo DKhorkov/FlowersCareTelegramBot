@@ -18,5 +18,8 @@ class WateringTimeTemplateCreator(BaseTemplateCreator):
         for numer, flower in enumerate(group_flowers, start=1):
             notification += f'{numer}) {flower.title}\n'
 
+        if len(group_flowers) == 0:
+            notification += 'В данный сценарий полива пока что не было добавлено ни одно растение!\n'
+
         notification += '\nРастения в данном сценарии были политы сегодня?'
         return notification
