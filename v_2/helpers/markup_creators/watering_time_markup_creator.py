@@ -13,11 +13,5 @@ class WateringTimeMarkupCreator(BaseMarkupCreator):
             text='Растения в данном сценарии политы ✅',
             callback_data=f'group_watering_status;YES;{current_date};{group_id}'
         )
-
-        group_not_watered = InlineKeyboardButton(
-            text='Растения в данном сценарии НЕ политы ❌',
-            callback_data=f'group_watering_status;NO;{current_date};{group_id}'
-        )
-
-        group_watering_status_markup.add(group_watered, group_not_watered)
+        group_watering_status_markup.add(group_watered)
         return group_watering_status_markup

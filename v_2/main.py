@@ -1255,9 +1255,7 @@ def dump_messages_handler(message: Message) -> None:
 @bot.callback_query_handler(func=lambda call: call.data.startswith('group_watering_status'))
 def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
     try:
-        if 'NO' in call.data:
-            MessageHandler.send_need_watering_callback_answer(bot=bot, callback_query_id=call.id)
-        elif 'YES' in call.data:
+        if 'YES' in call.data:
             group_id = int(call.data.split(';')[-1])
             last_watering_date = call.data.split(';')[-2]
             sql_alchemy.update_las_and_next_watering_dates(group_id=group_id, last_watering_date=last_watering_date)
