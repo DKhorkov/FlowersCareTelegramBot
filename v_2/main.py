@@ -1258,7 +1258,7 @@ def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
         if 'YES' in call.data:
             group_id = int(call.data.split(';')[-1])
             last_watering_date = call.data.split(';')[-2]
-            sql_alchemy.update_las_and_next_watering_dates(group_id=group_id, last_watering_date=last_watering_date)
+            sql_alchemy.update_last_and_next_watering_dates(group_id=group_id, last_watering_date=last_watering_date)
             notification = sql_alchemy.get_notification(group_id=group_id)
             MessageHandler.delete_notification_message(
                 bot=bot,

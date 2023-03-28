@@ -254,7 +254,7 @@ class SQLAlchemyAdapter:
         notification = self._session.query(Notification).filter(Notification.group_id == group_id).one()
         return notification
 
-    def update_las_and_next_watering_dates(self, group_id: int, last_watering_date: str) -> None:
+    def update_last_and_next_watering_dates(self, group_id: int, last_watering_date: str) -> None:
         flowers_group = self._session.query(FlowersGroup).filter(FlowersGroup.id == group_id).one()
         next_watering_date = datetime.strptime(last_watering_date,
             '%Y-%m-%d %H:%M:%S') + timedelta(days=flowers_group.watering_interval)
