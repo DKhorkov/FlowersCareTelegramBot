@@ -15,7 +15,7 @@ from v_2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 from v_2.helpers.json_api import JsonApi
 from v_2.helpers.watering_time_checker import WateringTimeChecker
 from v_2.helpers.processing_functions import change_flower_title, change_group_title, change_group_description, \
-    change_flower_description, get_user_groups_and_flowers
+    change_flower_description, get_user_groups_and_flowers, add_or_update_message_for_update
 
 
 bot = TeleBot(token=TOKEN)
@@ -41,15 +41,7 @@ def start(message: Message) -> None:
             sql_alchemy.add_user(message)
             #TODO Добавить приветственное сообщение с отправкой инфы по боту и его командам. Создать команду --help
 
-        user_groups, user_flowers = get_user_groups_and_flowers(sql_alchemy=sql_alchemy, user_id=message.from_user.id)
-        message_for_update = MessageHandler.send_start_message(
-            bot=bot,
-            message=message,
-            user_flowers=user_flowers,
-            user_groups=user_groups
-        )
-
-        JsonHandler(json_name).prepare_json(user_id=message.from_user.id, message_for_update=message_for_update)
+        add_or_update_message_for_update(bot=bot, message=message, sql_alchemy=sql_alchemy)
     except Exception as e:
         logger.error(e)
 
@@ -1139,19 +1131,19 @@ def create_item_text_messages_handler(message: Message) -> None:
     try:
         if JsonApi(message.from_user.id).set_group_title:
             json = JsonHandler(json_name).activate_group_description_and_write_title(message)
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_add_group_description_message(bot=bot, user_id=message.from_user.id, json=json)
         elif JsonApi(message.from_user.id).set_group_description:
             json = JsonHandler(json_name).deactivate_group_description_and_write_itself(message)
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=message.from_user.id, json=json)
         elif JsonApi(message.from_user.id).set_flower_title:
             json = JsonHandler(json_name).activate_flower_description_and_write_title(message)
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_add_flower_description_message(bot=bot, user_id=message.from_user.id, json=json)
         elif JsonApi(message.from_user.id).set_flower_description:
             json = JsonHandler(json_name).deactivate_flower_description_and_write_itself(message)
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_add_flower_group_message(
                 bot=bot,
                 user_id=message.from_user.id,
@@ -1159,7 +1151,7 @@ def create_item_text_messages_handler(message: Message) -> None:
                 flowers_groups=sql_alchemy.get_user_groups(message.from_user.id)
             )
         else:
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     except Exception as e:
         logger.error(e)
 
@@ -1179,7 +1171,7 @@ def create_item_photo_messages_handler(message: Message) -> None:
                 bytes_photo=bytes_photo
             )
 
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_add_flower_created_message(
                 bot=bot,
                 user_id=message.from_user.id,
@@ -1187,7 +1179,7 @@ def create_item_photo_messages_handler(message: Message) -> None:
                 bytes_photo=bytes_photo
             )
         else:
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     except Exception as e:
         logger.error(e)
 
@@ -1204,7 +1196,7 @@ def change_item_text_messages_handler(message: Message) -> None:
         elif JsonApi(message.from_user.id).set_flower_description:
             change_flower_description(bot=bot, message=message, sql_alchemy=sql_alchemy)
         else:
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     except Exception as e:
         logger.error(e)
 
@@ -1223,7 +1215,7 @@ def change_item_photo_messages_handler(message: Message) -> None:
                 new_bytes_photo=bytes_photo
             )
 
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
             MessageHandler.send_check_flower_choose_changing_point_message(
                 bot=bot,
                 user_id=message.from_user.id,
@@ -1233,7 +1225,7 @@ def change_item_photo_messages_handler(message: Message) -> None:
                 sql_alchemy=sql_alchemy
             )
         else:
-            MessageHandler.delete_message(bot=bot, message=message)
+            MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     except Exception as e:
         logger.error(e)
 
@@ -1242,7 +1234,7 @@ def change_item_photo_messages_handler(message: Message) -> None:
                                     'voice', 'location', 'contact', 'animation', 'dice', 'poll'])
 def dump_messages_handler(message: Message) -> None:
     try:
-        MessageHandler.delete_message(bot=bot, message=message)
+        MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     except Exception as e:
         logger.error(e)
 
@@ -1266,6 +1258,7 @@ def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
                 message_id=notification.message_id
             )
 
+            add_or_update_message_for_update(bot=bot, message=call, sql_alchemy=sql_alchemy)
             MessageHandler.send_praising_callback_answer(bot=bot, callback_query_id=call.id)
     except Exception as e:
         logger.error(e)

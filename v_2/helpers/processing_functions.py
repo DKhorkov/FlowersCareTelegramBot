@@ -1,5 +1,5 @@
 from telebot import TeleBot
-from telebot.types import Message
+from telebot.types import Message, CallbackQuery
 
 from v_2.helpers.json_handler import JsonHandler
 from v_2.helpers.message_handlers.main_message_handler import MessageHandler
@@ -20,7 +20,7 @@ def change_group_title(bot: TeleBot, message: Message, sql_alchemy: SQLAlchemyAd
         new_title=group_title
     )
 
-    MessageHandler.delete_message(bot=bot, message=message)
+    MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     MessageHandler.send_check_group_choose_changing_point_message(
         bot=bot,
         user_id=message.from_user.id,
@@ -39,7 +39,7 @@ def change_group_description(bot: TeleBot, message: Message, sql_alchemy: SQLAlc
         new_description=group_description
     )
 
-    MessageHandler.delete_message(bot=bot, message=message)
+    MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     MessageHandler.send_check_group_choose_changing_point_message(
         bot=bot,
         user_id=message.from_user.id,
@@ -58,7 +58,7 @@ def change_flower_title(bot: TeleBot, message: Message, sql_alchemy: SQLAlchemyA
         new_title=flower_title
     )
 
-    MessageHandler.delete_message(bot=bot, message=message)
+    MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     MessageHandler.send_check_flower_choose_changing_point_message(
         bot=bot,
         user_id=message.from_user.id,
@@ -77,7 +77,7 @@ def change_flower_description(bot: TeleBot, message: Message, sql_alchemy: SQLAl
         new_description=flower_description
     )
 
-    MessageHandler.delete_message(bot=bot, message=message)
+    MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
     MessageHandler.send_check_flower_choose_changing_point_message(
         bot=bot,
         user_id=message.from_user.id,
@@ -86,3 +86,20 @@ def change_flower_description(bot: TeleBot, message: Message, sql_alchemy: SQLAl
         flower_id=flower_id,
         sql_alchemy=sql_alchemy
     )
+
+
+def add_or_update_message_for_update(bot: TeleBot, message: Message | CallbackQuery,
+                                     sql_alchemy: SQLAlchemyAdapter) -> None:
+    message_for_update = JsonHandler(json_name).get_user_message_for_update(message.from_user.id)
+    if message_for_update is not None:
+        MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message_for_update)
+
+    user_groups, user_flowers = get_user_groups_and_flowers(sql_alchemy=sql_alchemy, user_id=message.from_user.id)
+    message_for_update = MessageHandler().send_start_message(
+        bot=bot,
+        message=message,
+        user_flowers=user_flowers,
+        user_groups=user_groups
+    )
+    JsonHandler(json_name).prepare_json(user_id=message.from_user.id, message_for_update=message_for_update)
+

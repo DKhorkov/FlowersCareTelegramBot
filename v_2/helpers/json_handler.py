@@ -287,3 +287,12 @@ class JsonHandler:
         json_data = self.read_json_file()
         group_id = json_data[str(user_id)]['group_id']
         return json_data, group_id
+
+    def get_user_message_for_update(self, user_id: int) -> int | None:
+        json_data = self.read_json_file()
+        if json_data.get(str(user_id), None) is not None and json_data[str(user_id)].get(
+                'message_for_update', None) is not None:
+            user_message_for_update = json_data[str(user_id)]['message_for_update']
+            return user_message_for_update
+
+        return None
