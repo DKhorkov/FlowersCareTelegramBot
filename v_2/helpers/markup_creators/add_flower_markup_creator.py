@@ -8,18 +8,6 @@ from v_2.helpers.sql_alchemy.models import FlowersGroup
 class AddFlowerMarkupCreator(BaseMarkupCreator):
 
     @staticmethod
-    def add_flower_no_groups_markup() -> InlineKeyboardMarkup:
-        add_flower_description_markup = InlineKeyboardMarkup(row_width=1)
-        add_group_button = InlineKeyboardButton(
-            text='Добавить сценарий полива',
-            callback_data='flower_adding_no_groups add_group'
-        )
-
-        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_no_groups BACK')
-        add_flower_description_markup.add(add_group_button, back_button)
-        return add_flower_description_markup
-
-    @staticmethod
     def add_flower_title_markup() -> InlineKeyboardMarkup:
         add_flower_title_markup = InlineKeyboardMarkup(row_width=1)
         back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_title BACK')
@@ -66,6 +54,19 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
         menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_photo MENU')
         add_flower_photo_markup.add(back_button, menu_button)
         return add_flower_photo_markup
+
+    @staticmethod
+    def add_flower_confirm_data_markup(adding_photo: bool) -> InlineKeyboardMarkup:
+        add_flower_confirm_data_markup = InlineKeyboardMarkup(row_width=1)
+        confirm_button = InlineKeyboardButton(
+            text='Все верно ✅',
+            callback_data=f'flower_adding_confirm_data confirm_flower_data {adding_photo}'
+        )
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_confirm_data BACK')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_confirm_data MENU')
+        add_flower_confirm_data_markup.add(confirm_button, back_button, menu_button)
+        return add_flower_confirm_data_markup
 
     @staticmethod
     def add_flower_created_markup() -> InlineKeyboardMarkup:

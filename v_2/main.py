@@ -4,6 +4,7 @@ from telebot import TeleBot
 from telebot_calendar import CallbackData, RUSSIAN_LANGUAGE
 from telebot.types import CallbackQuery, Message
 from threading import Thread
+from ast import literal_eval
 
 from v_2.configs import TOKEN, json_name
 from v_2.helpers.logging_system import get_logger
@@ -247,14 +248,6 @@ def back_to_menu_call_query(call: CallbackQuery) -> None:
 @bot.callback_query_handler(func=lambda call: call.data.startswith('add_flower'))
 def add_flower_call_query(call: CallbackQuery) -> None:
     try:
-        user_groups = sql_alchemy.get_user_groups(call.from_user.id)
-        if len(user_groups) == 0:
-            return MessageHandler.send_add_flower_no_groups_message(
-                bot=bot,
-                user_id=call.from_user.id,
-                json=JsonHandler(json_name).read_json_file()
-            )
-
         json = JsonHandler(json_name).activate_flower_title(call.from_user.id)
         MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
     except Exception as e:
@@ -388,9 +381,57 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).activate_flower_photo(call.from_user.id)
             MessageHandler.send_add_flower_photo_message(bot=bot, user_id=call.from_user.id, json=json)
         elif 'no' in call.data:
+            with open('helpers/static/images/base_flower_picture.png', 'rb') as file:
+                photo = file.read()
+
+            MessageHandler.send_add_flower_confirm_data_message(
+                bot=bot,
+                user_id=call.from_user.id,
+                json=JsonHandler(json_name).read_json_file(),
+                bytes_photo=pickle.dumps(photo),
+                adding_photo=False
+            )
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_photo'))
+def add_flower_photo_call_query(call: CallbackQuery) -> None:
+    try:
+        if 'BACK' in call.data:
+            _, json = JsonHandler(json_name).deactivate_flower_photo(call.from_user.id)
+            MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
+        elif "MENU" in call.data:
+            user_groups, user_flowers = get_user_groups_and_flowers(
+                sql_alchemy=sql_alchemy,
+                user_id=call.from_user.id
+            )
+
+            MessageHandler.send_back_to_menu_message(
+                bot=bot,
+                user_id=call.from_user.id,
+                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
+                user_groups=user_groups,
+                user_flowers=user_flowers
+            )
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_confirm_data'))
+def add_flower_confirm_data_call_query(call: CallbackQuery) -> None:
+    try:
+        if 'confirm_flower_data' in call.data:
             json = JsonHandler(json_name).read_json_file()
 
-            with open('helpers/static/images/base_flower_picture.jpg', 'rb') as file:
+            adding_photo = literal_eval(call.data.split(" ")[-1])
+            if adding_photo:
+                path_to_photo = f'users_photos/{call.from_user.id}/flower_photo.png'
+            else:
+                path_to_photo = 'helpers/static/images/base_flower_picture.png'
+
+
+            with open(path_to_photo, 'rb') as file:
                 photo = file.read()
 
             sql_alchemy.add_flower(
@@ -405,15 +446,8 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
                 json=json,
                 bytes_photo=pickle.dumps(photo)
             )
-    except Exception as e:
-        logger.error(e)
-
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_photo'))
-def add_flower_photo_call_query(call: CallbackQuery) -> None:
-    try:
-        if 'BACK' in call.data:
-            _, json = JsonHandler(json_name).deactivate_flower_photo(call.from_user.id)
+        elif "BACK" in call.data:
+            json = JsonHandler(json_name).read_json_file()
             MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
             user_groups, user_flowers = get_user_groups_and_flowers(
@@ -1189,20 +1223,15 @@ def create_item_photo_messages_handler(message: Message) -> None:
             _, json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
 
             photo = bot.get_file(message.photo[-1].file_id)
-            bytes_photo = PhotoProcessor.get_photo_from_message(photo)
-
-            sql_alchemy.add_flower(
-                user_id=message.from_user.id,
-                json_data=json,
-                bytes_photo=bytes_photo
-            )
+            bytes_photo = PhotoProcessor.get_photo_from_message(photo=photo, user_id=message.from_user.id)
 
             MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
-            MessageHandler.send_add_flower_created_message(
+            MessageHandler.send_add_flower_confirm_data_message(
                 bot=bot,
                 user_id=message.from_user.id,
-                json=json,
-                bytes_photo=bytes_photo
+                json=JsonHandler(json_name).read_json_file(),
+                bytes_photo=bytes_photo,
+                adding_photo=True
             )
         else:
             MessageHandler.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
@@ -1234,7 +1263,7 @@ def change_item_photo_messages_handler(message: Message) -> None:
             flower_id, json = JsonHandler(json_name).deactivate_flower_photo(message.from_user.id)
 
             photo = bot.get_file(message.photo[-1].file_id)
-            bytes_photo = PhotoProcessor.get_photo_from_message(photo)
+            bytes_photo = PhotoProcessor.get_photo_from_message(photo=photo, user_id=message.from_user.id)
 
             sql_alchemy.change_flower_photo(
                 flower_id=flower_id,

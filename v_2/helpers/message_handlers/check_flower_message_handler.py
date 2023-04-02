@@ -58,6 +58,48 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
         )
 
     @staticmethod
+    def send_check_flower_confirm_delete_message(bot: telebot.TeleBot, user_id: int, json: dict, flower_id: int,
+                                                 flower: Type[Flower], sql_alchemy: SQLAlchemyAdapter) -> None:
+        bot.edit_message_media(
+            chat_id=user_id,
+            message_id=json[str(user_id)]['message_for_update'],
+            reply_markup=MarkupCreator().check_flower_confirm_delete_markup(
+                flower_id=flower_id
+            ),
+            media=InputMediaPhoto(
+                media=pickle.loads(flower.photo),
+                caption=TemplateCreator().check_flower_confirm_delete(
+                    flower_description=DatabaseParser.parse_flower(
+                        sql_alchemy_adapter=sql_alchemy,
+                        flower=flower
+                    )
+                ),
+                parse_mode='HTML'
+            )
+        )
+
+    @staticmethod
+    def send_check_flower_choose_changing_point_message(bot: telebot.TeleBot, user_id: int, json: dict, flower_id: int,
+                                                        flower: Type[Flower], sql_alchemy: SQLAlchemyAdapter) -> None:
+        bot.edit_message_media(
+            chat_id=user_id,
+            message_id=json[str(user_id)]['message_for_update'],
+            reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
+                flower_id=flower_id
+            ),
+            media=InputMediaPhoto(
+                media=pickle.loads(flower.photo),
+                caption=TemplateCreator().check_flower_choose_changing_point(
+                    flower_description=DatabaseParser.parse_flower(
+                        sql_alchemy_adapter=sql_alchemy,
+                        flower=flower
+                    )
+                ),
+                parse_mode='HTML'
+            )
+        )
+
+    @staticmethod
     def send_check_flower_change_title_message(bot: telebot.TeleBot, user_id: int, json: dict, flower_id: int,
                                                flower: Type[Flower], sql_alchemy: SQLAlchemyAdapter) -> None:
         bot.edit_message_media(
@@ -134,48 +176,6 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=pickle.loads(flower.photo),
                 caption=TemplateCreator().check_flower_change_group(
-                    flower_description=DatabaseParser.parse_flower(
-                        sql_alchemy_adapter=sql_alchemy,
-                        flower=flower
-                    )
-                ),
-                parse_mode='HTML'
-            )
-        )
-
-    @staticmethod
-    def send_check_flower_choose_changing_point_message(bot: telebot.TeleBot, user_id: int, json: dict, flower_id: int,
-                                                        flower: Type[Flower], sql_alchemy: SQLAlchemyAdapter) -> None:
-        bot.edit_message_media(
-            chat_id=user_id,
-            message_id=json[str(user_id)]['message_for_update'],
-            reply_markup=MarkupCreator().check_flower_choose_changing_point_markup(
-                flower_id=flower_id
-            ),
-            media=InputMediaPhoto(
-                media=pickle.loads(flower.photo),
-                caption=TemplateCreator().check_flower_choose_changing_point(
-                    flower_description=DatabaseParser.parse_flower(
-                        sql_alchemy_adapter=sql_alchemy,
-                        flower=flower
-                    )
-                ),
-                parse_mode='HTML'
-            )
-        )
-
-    @staticmethod
-    def send_check_flower_confirm_delete_message(bot: telebot.TeleBot, user_id: int, json: dict, flower_id: int,
-                                                 flower: Type[Flower], sql_alchemy: SQLAlchemyAdapter) -> None:
-        bot.edit_message_media(
-            chat_id=user_id,
-            message_id=json[str(user_id)]['message_for_update'],
-            reply_markup=MarkupCreator().check_flower_confirm_delete_markup(
-                flower_id=flower_id
-            ),
-            media=InputMediaPhoto(
-                media=pickle.loads(flower.photo),
-                caption=TemplateCreator().check_flower_confirm_delete(
                     flower_description=DatabaseParser.parse_flower(
                         sql_alchemy_adapter=sql_alchemy,
                         flower=flower

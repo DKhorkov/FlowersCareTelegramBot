@@ -64,6 +64,27 @@ class CheckGroupMessageHandler(BaseMessageHandler):
         )
 
     @staticmethod
+    def send_check_group_confirm_delete_message(bot: telebot.TeleBot, user_id: int, json: dict, group_id: int,
+                                                group: Type[FlowersGroup], sql_alchemy: SQLAlchemyAdapter) -> None:
+        bot.edit_message_media(
+            chat_id=user_id,
+            message_id=json[str(user_id)]['message_for_update'],
+            reply_markup=MarkupCreator().check_group_confirm_delete_markup(
+                group_id=group_id
+            ),
+            media=InputMediaPhoto(
+                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                caption=TemplateCreator().check_group_confirm_delete(
+                    group_description=DatabaseParser().parse_group(
+                        sql_alchemy_adapter=sql_alchemy,
+                        group=group
+                    )
+                ),
+                parse_mode='HTML'
+            )
+        )
+
+    @staticmethod
     def send_check_group_choose_changing_point_message(bot: telebot.TeleBot, group: Type[FlowersGroup], user_id: int,
                                                        json: dict, group_id: int,sql_alchemy: SQLAlchemyAdapter
                                                        ) -> None:
@@ -76,27 +97,6 @@ class CheckGroupMessageHandler(BaseMessageHandler):
             media=InputMediaPhoto(
                 media=open('helpers/static/images/media_message_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_choose_changing_point(
-                    group_description=DatabaseParser().parse_group(
-                        sql_alchemy_adapter=sql_alchemy,
-                        group=group
-                    )
-                ),
-                parse_mode='HTML'
-            )
-        )
-
-    @staticmethod
-    def send_check_group_confirm_delete_message(bot: telebot.TeleBot, user_id: int, json: dict, group_id: int,
-                                                group: Type[FlowersGroup], sql_alchemy: SQLAlchemyAdapter) -> None:
-        bot.edit_message_media(
-            chat_id=user_id,
-            message_id=json[str(user_id)]['message_for_update'],
-            reply_markup=MarkupCreator().check_group_confirm_delete_markup(
-                group_id=group_id
-            ),
-            media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
-                caption=TemplateCreator().check_group_confirm_delete(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
                         group=group
@@ -140,7 +140,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open('helpers/static/images/group_title_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_title(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -161,7 +161,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open('helpers/static/images/group_description_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_description(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -185,7 +185,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 month=now.month
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open('helpers/static/images/group_last_watering_date_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_last_watering_date(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -207,7 +207,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open('helpers/static/images/group_watering_interval_picture.png', 'rb'),
                 caption=TemplateCreator().check_group_change_watering_interval(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,

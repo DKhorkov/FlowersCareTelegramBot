@@ -154,7 +154,8 @@ class CheckGroupMarkupCreator(BaseMarkupCreator):
             callback_data=f'check_group_change_watering_interval MENU {group_id}'
         )
 
-        check_group_change_watering_interval_markup.add(back_button, menu_button)
+        check_group_change_watering_interval_markup.add(back_button)
+        check_group_change_watering_interval_markup.add(menu_button)
         return check_group_change_watering_interval_markup
 
     @staticmethod
