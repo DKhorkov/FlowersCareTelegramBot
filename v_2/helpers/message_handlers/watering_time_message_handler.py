@@ -1,7 +1,6 @@
 import telebot
 
 from telebot.types import Message
-from telebot.apihelper import ApiTelegramException
 from datetime import datetime
 from typing import Type
 
@@ -28,15 +27,6 @@ class WateringTimeMessageHandler(BaseMessageHandler):
             )
 
         return watering_notification_message
-
-    @staticmethod
-    def delete_notification_message(bot: telebot.TeleBot, user_id: int, message_id: int) -> None:
-        try:
-            bot.delete_message(chat_id=user_id, message_id=message_id)
-        except ApiTelegramException:
-            pass
-        except Exception as e:
-            logger.info(f'{e} ERROR for user_id={user_id} and message_id={message_id}' )
 
     @staticmethod
     def send_praising_callback_answer(bot: telebot.TeleBot, callback_query_id: int) -> None:

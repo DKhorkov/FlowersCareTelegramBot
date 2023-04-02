@@ -1,6 +1,7 @@
 import telebot
 
 from telebot.types import InputMediaPhoto, Message
+from telebot.apihelper import ApiTelegramException
 
 from v_2.helpers.template_creators.main_template_creator import TemplateCreator
 from v_2.helpers.markup_creators.main_markup_creator import MarkupCreator
@@ -16,6 +17,8 @@ class BaseMessageHandler:
     def delete_message(bot: telebot.TeleBot, user_id: int, message_id: int) -> None:
         try:
             bot.delete_message(chat_id=user_id, message_id=message_id)
+        except ApiTelegramException:
+            pass
         except Exception as e:
             logger.error(f'{e} Failed to delete message from user_id={user_id} and message_id={message_id}!')
 

@@ -61,7 +61,7 @@ class WateringTimeChecker:
             self.__alchemy.add_notification(group_id=group.id, message_id=notification_message.id)
         else:
             notification = self.__alchemy.get_notification(group_id=group.id)
-            MessageHandler.delete_notification_message(
+            MessageHandler.delete_message(
                 bot=self.__bot,
                 user_id=user.user_id,
                 message_id=notification.message_id
