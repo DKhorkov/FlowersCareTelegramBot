@@ -28,7 +28,7 @@ class BaseMessageHandler:
             chat_id=message.from_user.id,
             media=[
                 InputMediaPhoto(
-                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                    media=open('helpers/static/images/start_picture.jpeg', 'rb'),
                     caption=TemplateCreator.base_template(),
                     parse_mode='HTML'
                 )
@@ -52,7 +52,7 @@ class BaseMessageHandler:
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator.base_markup(user_groups=user_groups, user_flowers=user_flowers),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open('helpers/static/images/start_picture.jpeg', 'rb'),
                 caption=TemplateCreator.base_template(),
                 parse_mode='HTML'
             )

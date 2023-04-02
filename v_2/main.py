@@ -165,8 +165,34 @@ def add_group_watering_interval_call_query(call: CallbackQuery) -> None:
         else:
             watering_interval = int(call.data.split(' ')[-1])
             json = JsonHandler(json_name).process_watering_interval(call.from_user.id, watering_interval)
+            MessageHandler.send_add_group_confirm_data_message(bot=bot, user_id=call.from_user.id, json=json)
+    except Exception as e:
+        logger.error(e)
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('group_adding_confirm_data'))
+def add_group_confirm_data_call_query(call: CallbackQuery) -> None:
+    try:
+        if 'confirm_group_data' in call.data:
+            json = JsonHandler(json_name).read_json_file()
             sql_alchemy.add_group(user_id=call.from_user.id, json_data=json)
             MessageHandler.send_add_group_created_message(bot=bot, user_id=call.from_user.id, json=json)
+        elif "BACK" in call.data:
+            json = JsonHandler(json_name).read_json_file()
+            MessageHandler.send_add_group_watering_interval_message(bot=bot, user_id=call.from_user.id, json=json)
+        elif "MENU" in call.data:
+            user_groups, user_flowers = get_user_groups_and_flowers(
+                sql_alchemy=sql_alchemy,
+                user_id=call.from_user.id
+            )
+
+            MessageHandler.send_back_to_menu_message(
+                bot=bot,
+                user_id=call.from_user.id,
+                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
+                user_groups=user_groups,
+                user_flowers=user_flowers
+            )
     except Exception as e:
         logger.error(e)
 
@@ -364,7 +390,7 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
         elif 'no' in call.data:
             json = JsonHandler(json_name).read_json_file()
 
-            with open('helpers/static/images/base_flower_photo.jpg', 'rb') as file:
+            with open('helpers/static/images/base_flower_picture.jpg', 'rb') as file:
                 photo = file.read()
 
             sql_alchemy.add_flower(

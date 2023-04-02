@@ -43,6 +43,18 @@ class AddGroupMarkupCreator(BaseMarkupCreator):
         return add_group_watering_interval_markup
 
     @staticmethod
+    def add_group_confirm_data_markup() -> InlineKeyboardMarkup:
+        add_group_confirm_data_markup = InlineKeyboardMarkup(row_width=1)
+        confirm_button = InlineKeyboardButton(
+            text='Все верно ✅',
+            callback_data='group_adding_confirm_data confirm_group_data'
+        )
+
+        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='group_adding_confirm_data BACK')
+        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='group_adding_confirm_data MENU')
+        add_group_confirm_data_markup.add(confirm_button, back_button, menu_button)
+        return add_group_confirm_data_markup
+    @staticmethod
     def add_group_created_markup() -> InlineKeyboardMarkup:
         add_flower_created_markup = InlineKeyboardMarkup(row_width=1)
         add_flower_button = InlineKeyboardButton(
