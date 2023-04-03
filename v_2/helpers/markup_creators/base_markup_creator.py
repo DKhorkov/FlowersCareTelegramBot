@@ -18,10 +18,3 @@ class BaseMarkupCreator:
             base_markup.add(check_flowers)
 
         return base_markup
-
-    @staticmethod
-    def back_to_menu_markup() -> InlineKeyboardMarkup:
-        back_to_menu_markup = InlineKeyboardMarkup(row_width=1)
-        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='MENU')
-        back_to_menu_markup.add(menu_button)
-        return back_to_menu_markup

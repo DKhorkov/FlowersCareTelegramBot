@@ -43,17 +43,3 @@ class BaseMessageHandler:
 
         self.delete_message(bot=bot, user_id=message.from_user.id, message_id=message.id)
         return message_id_to_update
-
-    @staticmethod
-    def send_back_to_menu_message(bot: telebot.TeleBot, user_id: int, json: dict, user_groups: list,
-                                  user_flowers: list) -> None:
-        bot.edit_message_media(
-            chat_id=user_id,
-            message_id=json[str(user_id)]['message_for_update'],
-            reply_markup=MarkupCreator.base_markup(user_groups=user_groups, user_flowers=user_flowers),
-            media=InputMediaPhoto(
-                media=open('helpers/static/images/start_picture.jpeg', 'rb'),
-                caption=TemplateCreator.base_template(),
-                parse_mode='HTML'
-            )
-        )

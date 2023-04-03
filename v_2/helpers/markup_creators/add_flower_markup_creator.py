@@ -63,8 +63,16 @@ class AddFlowerMarkupCreator(BaseMarkupCreator):
             callback_data=f'flower_adding_confirm_data confirm_flower_data {adding_photo}'
         )
 
-        back_button = InlineKeyboardButton(text='Назад ↩️', callback_data='flower_adding_confirm_data BACK')
-        menu_button = InlineKeyboardButton(text='В меню 🏠', callback_data='flower_adding_confirm_data MENU')
+        back_button = InlineKeyboardButton(
+            text='Назад ↩️',
+            callback_data=f'flower_adding_confirm_data BACK {adding_photo}'
+        )
+
+        menu_button = InlineKeyboardButton(
+            text='В меню 🏠',
+            callback_data=f'flower_adding_confirm_data MENU {adding_photo}'
+        )
+
         add_flower_confirm_data_markup.add(confirm_button, back_button, menu_button)
         return add_flower_confirm_data_markup
 

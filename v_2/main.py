@@ -7,6 +7,7 @@ from threading import Thread
 from ast import literal_eval
 
 from v_2.configs import TOKEN, json_name
+from v_2.helpers.back_to_menu_interface import BackToMenuInterface
 from v_2.helpers.logging_system import get_logger
 from v_2.helpers.customized_calendar import CustomizedCalendar
 from v_2.helpers.json_handler import JsonHandler
@@ -88,17 +89,11 @@ def add_group_description_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).deactivate_group_description_and_activate_title(call.from_user.id)
             MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='group_description'
             )
     except Exception as e:
         logger.error(e)
@@ -125,17 +120,11 @@ def add_group_last_watering_date_call_query(call: CallbackQuery) -> None:
             )
             MessageHandler.send_add_group_watering_interval_message(bot=bot, user_id=call.from_user.id, json=json)
         elif action == "MENU":
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='group_last_watering_date'
             )
         elif action == "BACK":
             json = JsonHandler(json_name).activate_group_description(call.from_user.id)
@@ -151,17 +140,11 @@ def add_group_watering_interval_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).read_json_file()
             MessageHandler.send_add_group_last_watering_date_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='group_watering_interval'
             )
         else:
             watering_interval = int(call.data.split(' ')[-1])
@@ -182,17 +165,11 @@ def add_group_confirm_data_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).read_json_file()
             MessageHandler.send_add_group_watering_interval_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='group_confirm_data'
             )
     except Exception as e:
         logger.error(e)
@@ -254,29 +231,6 @@ def add_flower_call_query(call: CallbackQuery) -> None:
         logger.error(e)
 
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_no_groups'))
-def add_flower_title_call_query(call: CallbackQuery) -> None:
-    try:
-        if 'BACK' in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
-                bot=bot,
-                user_id=call.from_user.id,
-                json=JsonHandler(json_name).read_json_file(),
-                user_groups=user_groups,
-                user_flowers=user_flowers
-            )
-        elif 'add_group' in call.data:
-            json = JsonHandler(json_name).activate_group_title(call.from_user.id)
-            MessageHandler.send_add_group_title_message(bot=bot, user_id=call.from_user.id, json=json)
-    except Exception as e:
-        logger.error(e)
-
-
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_title'))
 def add_flower_title_call_query(call: CallbackQuery) -> None:
     try:
@@ -304,17 +258,11 @@ def add_flower_description_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).deactivate_flower_description_and_activate_title(call.from_user.id)
             MessageHandler.send_add_flower_title_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='flower_description'
             )
     except Exception as e:
         logger.error(e)
@@ -327,17 +275,11 @@ def add_flower_group_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).activate_flower_description(call.from_user.id)
             MessageHandler.send_add_flower_description_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='flower_group'
             )
         else:
             flower_group_id = int(call.data.split(" ")[-1])
@@ -355,7 +297,7 @@ def add_flower_group_call_query(call: CallbackQuery) -> None:
 
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_ask_photo'))
-def add_flower_photo_call_query(call: CallbackQuery) -> None:
+def add_flower_ask_photo_call_query(call: CallbackQuery) -> None:
     try:
         if 'BACK' in call.data:
             MessageHandler.send_add_flower_group_message(
@@ -365,17 +307,11 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
                 flowers_groups=sql_alchemy.get_user_groups(call.from_user.id)
             )
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='flower_ask_photo'
             )
         elif 'yes' in call.data:
             json = JsonHandler(json_name).activate_flower_photo(call.from_user.id)
@@ -402,17 +338,11 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
             _, json = JsonHandler(json_name).deactivate_flower_photo(call.from_user.id)
             MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='flower_photo'
             )
     except Exception as e:
         logger.error(e)
@@ -421,15 +351,14 @@ def add_flower_photo_call_query(call: CallbackQuery) -> None:
 @bot.callback_query_handler(func=lambda call: call.data.startswith('flower_adding_confirm_data'))
 def add_flower_confirm_data_call_query(call: CallbackQuery) -> None:
     try:
+        adding_photo = literal_eval(call.data.split(" ")[-1])
         if 'confirm_flower_data' in call.data:
             json = JsonHandler(json_name).read_json_file()
 
-            adding_photo = literal_eval(call.data.split(" ")[-1])
             if adding_photo:
                 path_to_photo = f'users_photos/{call.from_user.id}/flower_photo.png'
             else:
                 path_to_photo = 'helpers/static/images/base_flower_picture.png'
-
 
             with open(path_to_photo, 'rb') as file:
                 photo = file.read()
@@ -450,17 +379,12 @@ def add_flower_confirm_data_call_query(call: CallbackQuery) -> None:
             json = JsonHandler(json_name).read_json_file()
             MessageHandler.send_add_flower_ask_photo_message(bot=bot, user_id=call.from_user.id, json=json)
         elif "MENU" in call.data:
-            user_groups, user_flowers = get_user_groups_and_flowers(
-                sql_alchemy=sql_alchemy,
-                user_id=call.from_user.id
-            )
-
-            MessageHandler.send_back_to_menu_message(
+            MessageHandler.send_confirm_back_to_menu_message(
                 bot=bot,
                 user_id=call.from_user.id,
-                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
-                user_groups=user_groups,
-                user_flowers=user_flowers
+                json=JsonHandler(json_name).read_json_file(),
+                call_place='flower_confirm_data',
+                adding_photo=adding_photo
             )
     except Exception as e:
         logger.error(e)
@@ -1318,6 +1242,41 @@ def check_group_confirm_delete_call_query(call: CallbackQuery) -> None:
     except Exception as e:
         logger.error(e)
 
+
+"""
+    Ниже идет логика по обработке back_to_menu коллбэков.
+"""
+
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('back_to_menu'))
+def confirm_back_to_menu_call_query(call: CallbackQuery) -> None:
+    try:
+        if 'YES' in call.data:
+            user_groups, user_flowers = get_user_groups_and_flowers(
+                sql_alchemy=sql_alchemy,
+                user_id=call.from_user.id
+            )
+
+            MessageHandler.send_back_to_menu_message(
+                bot=bot,
+                user_id=call.from_user.id,
+                json=JsonHandler(json_name).reset_appropriate_messages(call.from_user.id),
+                user_groups=user_groups,
+                user_flowers=user_flowers
+            )
+        elif 'NO' in call.data:
+            call_place = call.data.split(' ')[-1]
+            adding_photo = literal_eval(call.data.split(" ")[-2])
+            BackToMenuInterface().call_place_spreader(
+                bot=bot,
+                user_id=call.from_user.id,
+                json=JsonHandler(json_name).read_json_file(),
+                call_place=call_place,
+                sql_alchemy=sql_alchemy,
+                adding_photo=adding_photo
+            )
+    except Exception as e:
+        logger.error(e)
 
 if __name__ == '__main__':
     notification_thread = Thread(target=watering_time_checker.check_subscribes, daemon=True).start()

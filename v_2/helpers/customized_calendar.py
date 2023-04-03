@@ -88,12 +88,12 @@ class CustomizedCalendar(Calendar):
                 callback_data=calendar_callback.new("PREVIOUS-MONTH", year, month, "!"),
             ),
             InlineKeyboardButton(
-                "В меню 🏠",
-                callback_data=calendar_callback.new("MENU", year, month, "!"),
-            ),
-            InlineKeyboardButton(
                 "Назад  ↩️",
                 callback_data=calendar_callback.new("BACK", year, month, "!"),
+            ),
+            InlineKeyboardButton(
+                "В меню 🏠",
+                callback_data=calendar_callback.new("MENU", year, month, "!"),
             ),
             InlineKeyboardButton(
                 ">", callback_data=calendar_callback.new("NEXT-MONTH", year, month, "!")
