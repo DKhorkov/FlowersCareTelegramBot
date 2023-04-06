@@ -7,12 +7,12 @@ from src_v2.helpers.template_creators.base_template_creator import BaseTemplateC
 class WateringTimeTemplateCreator(BaseTemplateCreator):
 
     def group_watering_status(self, group: Type[FlowersGroup], group_flowers: list[Type[Flower]]) -> str:
-        days = self.__get_days(watering_interval=group.watering_interval)
+        days = self.__get_watering_interval_days_name(watering_interval=group.watering_interval)
         notification = f'Необходимо полить растения, принадлежащие к следующему сценарию полива: \n\n' \
                        f'<b>Название сценария:</b> {group.title}\n' \
                        f'<b>Описание сценария:</b> {group.description}\n' \
                        f'<b>Дата последнего полива сценария:</b> ' \
-                       f'{self._transform_to_russian_date(group.last_watering_date.split(" ")[0])}\n' \
+                       f'{self._transform_to_russian_date(group.last_watering_date)}\n' \
                        f'<b>Интервал полива сценария:</b> {group.watering_interval} {days}\n\n' \
                        f'Растения в данном сценарии:\n'
 
@@ -26,7 +26,7 @@ class WateringTimeTemplateCreator(BaseTemplateCreator):
         return notification
 
     @classmethod
-    def __get_days(cls, watering_interval: int) -> str:
+    def __get_watering_interval_days_name(cls, watering_interval: int) -> str:
         if watering_interval in [1, 21]:
             days = 'день'
         elif watering_interval in [2, 3, 4]:
