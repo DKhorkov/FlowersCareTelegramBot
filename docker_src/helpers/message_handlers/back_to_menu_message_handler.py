@@ -2,10 +2,10 @@ import telebot
 
 from telebot.types import InputMediaPhoto
 
-from src_v2.helpers.template_creators.main_template_creator import TemplateCreator
-from src_v2.helpers.markup_creators.main_markup_creator import MarkupCreator
-from src_v2.helpers.logging_system import get_logger
-from src_v2.helpers.message_handlers.base_message_handler import BaseMessageHandler
+from . .template_creators.main_template_creator import TemplateCreator
+from . .markup_creators.main_markup_creator import MarkupCreator
+from . .logging_system import get_logger
+from .base_message_handler import BaseMessageHandler
 
 
 logger = get_logger('bot_logs')

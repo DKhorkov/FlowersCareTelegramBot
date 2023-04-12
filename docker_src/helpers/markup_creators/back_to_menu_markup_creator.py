@@ -1,6 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
-from src_v2.helpers.markup_creators.base_markup_creator import BaseMarkupCreator
+from .base_markup_creator import BaseMarkupCreator
 
 
 class BackToMenuMarkupCreator(BaseMarkupCreator):

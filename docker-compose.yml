@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  flowers_bot:
+    build: .
+    container_name: flowers_care_bot
+    restart: always
+    volumes:
+      - JSON_data:/Docker/JSON_data
+      - log:/Docker/log/
+      - database:/Docker/sqlite_tg_bot_db.db:rw
+
+#  sqlite3:
+#    container_name: sqlite3_container
+#    image: nouchka/sqlite3:latest
+#    stdin_open: true
+#    tty: true
+#    volumes:
+#      - database:/root/db/
+#    restart: always
+
+volumes:
+  JSON_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/dkhorkov/Рабочий стол/PythonProjects/Flowers_Telegram_Bot/Docker/JSON_data
+  log:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/dkhorkov/Рабочий стол/PythonProjects/Flowers_Telegram_Bot/Docker/log
+  database:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/dkhorkov/Рабочий стол/PythonProjects/Flowers_Telegram_Bot/Docker/database
