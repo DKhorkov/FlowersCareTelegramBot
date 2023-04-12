@@ -23,7 +23,7 @@ from helpers.processing_functions import change_flower_title, change_group_title
 
 bot = TeleBot(token=TOKEN)
 logger = get_logger('bot_logs')
-sql_alchemy = SQLAlchemyAdapter(logger=logger)
+sql_alchemy = SQLAlchemyAdapter(logger=logger, path_to_db='database/sqlite_tg_bot_db.db')
 sql_alchemy.create_tables()
 watering_time_checker = WateringTimeChecker(bot=bot, sql_alchemy=sql_alchemy, logger=logger)
 calendar = CustomizedCalendar(language=RUSSIAN_LANGUAGE)

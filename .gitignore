@@ -16,3 +16,5 @@ v2_/helpers/message_handlers/__pycache__/
 src_v2/helpers/markup_creators/__pycache__/
 src_v2/helpers/message_handlers/__pycache__/
 src_v2/users_photos
+docker_src/token_configs.py
+docker_files/
