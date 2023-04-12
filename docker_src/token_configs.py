@@ -1,6 +1,0 @@
-"""Configs for FlowersCareBot"""
-
-TOKEN = "6061128931:AAEXe1n36ywvvxPinLVXqUe05cHRW6Z3me4"
-
-TEST_TOKEN = "5646197617:AAE7LLMYniYTQ9poLec4Op-jPrs7N3dFGwI"
-
