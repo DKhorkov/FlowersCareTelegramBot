@@ -1,9 +1,12 @@
 import datetime
 import calendar
+import os
 
 from telebot import TeleBot
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, InputMediaPhoto
 from telebot_calendar import Calendar, CallbackData, Language, RUSSIAN_LANGUAGE, ENGLISH_LANGUAGE
+
+from .photo_paths_handler import PhotoPathsHandler
 
 
 class CustomizedCalendar(Calendar):
@@ -145,7 +148,7 @@ class CustomizedCalendar(Calendar):
                     month=int(preview_month.month),
                 ),
                 media=InputMediaPhoto(
-                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                    media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -164,7 +167,7 @@ class CustomizedCalendar(Calendar):
                     month=int(next_month.month)
                 ),
                 media=InputMediaPhoto(
-                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                    media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -180,7 +183,7 @@ class CustomizedCalendar(Calendar):
                     year=current.year
                 ),
                 media=InputMediaPhoto(
-                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                    media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )
@@ -197,7 +200,7 @@ class CustomizedCalendar(Calendar):
                     month=int(month)
                 ),
                 media=InputMediaPhoto(
-                    media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                    media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                     caption=call.message.caption,
                     parse_mode='HTML'
                 )

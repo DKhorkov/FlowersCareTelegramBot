@@ -1,3 +1,4 @@
+import os
 import telebot
 import pickle
 
@@ -9,6 +10,7 @@ from src_v2.helpers.markup_creators.main_markup_creator import MarkupCreator
 from src_v2.helpers.logging_system import get_logger
 from src_v2.helpers.message_handlers.base_message_handler import BaseMessageHandler
 from src_v2.helpers.sql_alchemy.models import FlowersGroup
+from src_v2.helpers.photo_paths_handler import PhotoPathsHandler
 
 
 logger = get_logger('bot_logs')
@@ -23,7 +25,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator().add_flower_title_markup(),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/add_flower_title_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.add_flower_title_picture.value), 'rb'),
                 caption=TemplateCreator().add_flower_title(),
                 parse_mode='HTML'
             )
@@ -36,7 +38,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator().add_flower_description_markup(),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/add_flower_description_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.add_flower_description_picture.value), 'rb'),
                 caption=TemplateCreator().add_flower_description(
                     json=json,
                     str_user_id=str(user_id)
@@ -55,7 +57,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
                 flowers_groups=flowers_groups
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/add_flower_group_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.add_flower_group_picture.value), 'rb'),
                 caption=TemplateCreator().add_flower_group(
                     json=json,
                     str_user_id=str(user_id)
@@ -71,7 +73,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator().add_flower_ask_photo_markup(),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/add_flower_photo_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.add_flower_photo_picture.value), 'rb'),
                 caption=TemplateCreator().add_flower_ask_photo(
                     json=json,
                     str_user_id=str(user_id)
@@ -87,7 +89,7 @@ class AddFlowerMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator().add_flower_photo_markup(),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/add_flower_photo_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.add_flower_photo_picture.value), 'rb'),
                 caption=TemplateCreator().add_flower_photo(
                     json=json,
                     str_user_id=str(user_id)

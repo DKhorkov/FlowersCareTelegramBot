@@ -1,3 +1,4 @@
+import os
 import telebot
 
 from datetime import datetime
@@ -13,6 +14,7 @@ from src_v2.helpers.message_handlers.base_message_handler import BaseMessageHand
 from src_v2.helpers.sql_alchemy.models import Flower, FlowersGroup
 from src_v2.helpers.sql_alchemy.adapter import SQLAlchemyAdapter
 from src_v2.helpers.database_parser import DatabaseParser
+from src_v2.helpers.photo_paths_handler import PhotoPathsHandler
 
 
 logger = get_logger('bot_logs')
@@ -34,7 +36,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 user_groups=user_groups
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_selection(
                     empty_groups=True if len(user_groups) > 0 else False
                 ),
@@ -52,7 +54,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_action(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -73,7 +75,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_confirm_delete(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -95,7 +97,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_choose_changing_point(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -118,7 +120,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_see_flowers(
                     group_flowers_length=len(group_flowers),
                     group_description=DatabaseParser().parse_group(
@@ -140,7 +142,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/group_title_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.group_title_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_change_title(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -161,7 +163,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/group_description_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.group_description_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_change_description(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -185,7 +187,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 month=now.month
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/group_last_watering_date_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.group_last_watering_date_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_change_last_watering_date(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,
@@ -207,7 +209,7 @@ class CheckGroupMessageHandler(BaseMessageHandler):
                 group_id=group_id
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/group_watering_interval_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.group_watering_interval_picture.value), 'rb'),
                 caption=TemplateCreator().check_group_change_watering_interval(
                     group_description=DatabaseParser().parse_group(
                         sql_alchemy_adapter=sql_alchemy,

@@ -1,3 +1,4 @@
+import os
 import telebot
 
 from telebot.types import InputMediaPhoto
@@ -6,6 +7,7 @@ from . .template_creators.main_template_creator import TemplateCreator
 from . .markup_creators.main_markup_creator import MarkupCreator
 from . .logging_system import get_logger
 from .base_message_handler import BaseMessageHandler
+from . .photo_paths_handler import PhotoPathsHandler
 
 
 logger = get_logger('bot_logs')
@@ -23,7 +25,7 @@ class BackToMenuMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator.confirm_back_to_menu_markup(call_place=call_place, adding_photo=adding_photo),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/start_picture.jpeg', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.start_picture.value), 'rb'),
                 caption=BackToMenuMessageHandler.CONFIRM_MESSAGE_TEXT,
                 parse_mode='HTML'
             )
@@ -37,7 +39,7 @@ class BackToMenuMessageHandler(BaseMessageHandler):
             message_id=json[str(user_id)]['message_for_update'],
             reply_markup=MarkupCreator.base_markup(user_groups=user_groups, user_flowers=user_flowers),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/start_picture.jpeg', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.start_picture.value), 'rb'),
                 caption=TemplateCreator.base_template(),
                 parse_mode='HTML'
             )

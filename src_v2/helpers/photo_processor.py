@@ -6,6 +6,7 @@ from PIL import Image
 from telebot.types import File
 
 from src_v2.configs import TOKEN
+from src_v2.helpers.photo_paths_handler import PhotoPathsHandler
 
 
 class PhotoProcessor:
@@ -29,7 +30,7 @@ class PhotoProcessor:
 
     def get_photo_object(self, adding_photo: bool, user_id: int) -> bytes:
         path_to_photo = self.__get_path_to_photo(adding_photo=adding_photo, user_id=user_id)
-        with open(path_to_photo, 'rb') as file:
+        with open(os.path.join(os.getcwd(), path_to_photo), 'rb') as file:
             photo = file.read()
 
         return photo
@@ -39,6 +40,6 @@ class PhotoProcessor:
         if adding_photo:
             path_to_photo = f'users_photos/{user_id}/flower_photo.png'
         else:
-            path_to_photo = 'helpers/static/images/base_flower_picture.png'
+            path_to_photo = PhotoPathsHandler.base_flower_picture
 
         return path_to_photo

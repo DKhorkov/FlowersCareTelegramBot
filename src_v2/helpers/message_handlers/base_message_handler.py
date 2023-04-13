@@ -1,3 +1,4 @@
+import os
 import telebot
 
 from telebot.types import InputMediaPhoto, Message
@@ -6,6 +7,7 @@ from telebot.apihelper import ApiTelegramException
 from src_v2.helpers.template_creators.main_template_creator import TemplateCreator
 from src_v2.helpers.markup_creators.main_markup_creator import MarkupCreator
 from src_v2.helpers.logging_system import get_logger
+from src_v2.helpers.photo_paths_handler import PhotoPathsHandler
 
 
 logger = get_logger('bot_logs')
@@ -28,7 +30,7 @@ class BaseMessageHandler:
             chat_id=message.from_user.id,
             media=[
                 InputMediaPhoto(
-                    media=open('helpers/static/images/start_picture.jpeg', 'rb'),
+                    media=open(os.path.join(os.getcwd(), PhotoPathsHandler.start_picture.value), 'rb'),
                     caption=TemplateCreator.base_template(),
                     parse_mode='HTML'
                 )

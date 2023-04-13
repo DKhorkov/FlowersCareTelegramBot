@@ -6,6 +6,7 @@ from PIL import Image
 from telebot.types import File
 
 from .configs import TOKEN
+from .photo_paths_handler import PhotoPathsHandler
 
 
 class PhotoProcessor:
@@ -17,19 +18,19 @@ class PhotoProcessor:
 
         self.__check_if_folder_for_photos_exists(user_id=user_id)
 
-        photo_obj.save(f'users_photos/{user_id}/flower_photo.png')
+        photo_obj.save(f'docker_src/users_photos/{user_id}/flower_photo.png')
         return bytes_photo
 
     @classmethod
     def __check_if_folder_for_photos_exists(cls, user_id):
-        if not os.path.exists(f'users_photos'):
-            os.mkdir(f'users_photos')
-        if not os.path.exists(f'users_photos/{user_id}'):
-            os.mkdir(f'users_photos/{user_id}')
+        if not os.path.exists(f'docker_src/users_photos'):
+            os.mkdir(f'docker_src/users_photos')
+        if not os.path.exists(f'docker_src/users_photos/{user_id}'):
+            os.mkdir(f'docker_src/users_photos/{user_id}')
 
     def get_photo_object(self, adding_photo: bool, user_id: int) -> bytes:
         path_to_photo = self.__get_path_to_photo(adding_photo=adding_photo, user_id=user_id)
-        with open(path_to_photo, 'rb') as file:
+        with open(os.path.join(os.getcwd(), path_to_photo), 'rb') as file:
             photo = file.read()
 
         return photo
@@ -37,8 +38,8 @@ class PhotoProcessor:
     @staticmethod
     def __get_path_to_photo(adding_photo: bool, user_id: int) -> str:
         if adding_photo:
-            path_to_photo = f'users_photos/{user_id}/flower_photo.png'
+            path_to_photo = f'docker_src/users_photos/{user_id}/flower_photo.png'
         else:
-            path_to_photo = 'helpers/static/images/base_flower_picture.png'
+            path_to_photo = PhotoPathsHandler.base_flower_picture.value
 
         return path_to_photo

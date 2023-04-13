@@ -1,3 +1,4 @@
+import os
 import telebot
 import pickle
 
@@ -11,6 +12,7 @@ from .base_message_handler import BaseMessageHandler
 from . .sql_alchemy.models import Flower, FlowersGroup
 from . .sql_alchemy.adapter import SQLAlchemyAdapter
 from . .database_parser import DatabaseParser
+from . .photo_paths_handler import PhotoPathsHandler
 
 
 logger = get_logger('bot_logs')
@@ -28,7 +30,7 @@ class CheckFlowerMessageHandler(BaseMessageHandler):
                 user_flowers=user_flowers
             ),
             media=InputMediaPhoto(
-                media=open('helpers/static/images/media_message_picture.png', 'rb'),
+                media=open(os.path.join(os.getcwd(), PhotoPathsHandler.media_message_picture.value), 'rb'),
                 caption=TemplateCreator().check_flower_selection(
                     empty_flowers=True if len(user_flowers) > 0 else False
                 ),
